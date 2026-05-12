@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Reportes de Desempeño — Llama y Carbón{% endblock %}
+{% block titulo_pagina %}Reportes de Desempeño{% endblock %}
+
+{% block estilos_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* Estilos para asegurar que el diseño sea consistente */
+    .report-card {
+        background-color: #ffffff;
+        border-radius: 60px;
+        padding: 2.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+{% with seccion_activa='reportes' %}
+
+<div class="flex flex-col gap-8 max-w-7xl mx-auto pb-20">
+
+    {# ── Filtros y controles ── #}
+    <section class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 px-4">
+        <div class="flex flex-wrap gap-4">
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1">Periodo</label>
+                <div class="flex items-center bg-surface-container-high rounded-full px-5 py-2.5 gap-3 cursor-pointer hover:bg-surface-container-highest transition-colors">
+                    <span class="material-symbols-outlined text-primary text-sm">calendar_today</span>
+                    <span class="font-label text-sm font-medium">{{ fecha_rango }}</span>
+                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider px-1">Sucursal</label>
+                <div class="flex items-center bg-surface-container-high rounded-full px-5 py-2.5 gap-3 cursor-pointer hover:bg-surface-container-highest transition-colors">
+                    <span class="material-symbols-outlined text-primary text-sm">store</span>
+                    <span class="font-label text-sm font-medium">Todas las Sucursales</span>
+                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                </div>
+            </div>
+        </div>
+
+        {# BLOQUE ACTUALIZADO DE ACCIONES #}
+        <div class="flex flex-wrap gap-3">
+            {# Exportar PDF #}
+            <a href="{% url 'Reportes:exportar_pdf' %}" 
+               class="bg-surface-container-highest text-on-surface flex items-center gap-2 px-5 py-3 rounded-full font-label text-sm font-medium hover:scale-105 transition-all">
+                <span class="material-symbols-outlined text-lg text-primary">picture_as_pdf</span>
+                Exportar PDF
+            </a>
+
+            {# Exportar CSV #}
+            <a href="{% url 'Reportes:exportar_csv' %}" 
+               class="bg-surface-container-highest text-on-surface flex items-center gap-2 px-5 py-3 rounded-full font-label text-sm font-medium hover:scale-105 transition-all">
+                <span class="material-symbols-outlined text-lg text-primary">table_view</span>
+                Exportar CSV
+            </a>
+
+            {# Compartir #}
+            <button onclick="compartirReporte()" 
+                class="bg-primary text-on-primary flex items-center gap-2 px-7 py-3 rounded-full font-label text-sm font-medium hover:scale-105 transition-transform shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-lg">share</span>
+                Compartir
+            </button>
+        </div>
+    </section>
+
+    {# ── KPIs ── #}
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+        {# Ventas totales #}
+        <div class="bg-surface-container-lowest p-8 rounded-[40px] flex flex-col justify-between group hover:bg-primary transition-all duration-300 shadow-sm">
+            <div class="flex justify-between items-start mb-6">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-on-primary/80 transition-colors">Ventas Totales</span>
+                <span class="material-symbols-outlined text-primary group-hover:text-on-primary">trending_up</span>
+            </div>
+            <div>
+                <p class="text-4xl font-headline font-extrabold text-primary group-hover:text-on-primary">${{ total_semana }}</p>
+                <p class="text-xs text-on-surface-variant mt-1 group-hover:text-on-primary/70">{{ variacion }} vs semana anterior</p>
+            </div>
+        </div>
+
+        {# Ticket promedio #}
+        <div class="bg-surface-container-lowest p-8 rounded-[40px] flex flex-col justify-between group hover:bg-tertiary transition-all duration-300 shadow-sm">
+            <div class="flex justify-between items-start mb-6">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-on-tertiary/80 transition-colors">Ticket Promedio</span>
+                <span class="material-symbols-outlined text-tertiary group-hover:text-on-tertiary">local_activity</span>
+            </div>
+            <div>
+                <p class="text-4xl font-headline font-extrabold text-tertiary group-hover:text-on-tertiary">${{ ticket_promedio }}</p>
+                <p class="text-xs text-on-surface-variant mt-1 group-hover:text-on-tertiary/70">{{ num_ventas }} ventas</p>
+            </div>
+        </div>
+
+        {# Discrepancias #}
+        <div class="bg-surface-container-lowest p-8 rounded-[40px] flex flex-col justify-between group hover:bg-error transition-all duration-300 shadow-sm">
+            <div class="flex justify-between items-start mb-6">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-on-error/80 transition-colors">Discrepancias</span>
+                <span class="material-symbols-outlined text-error group-hover:text-on-error">warning</span>
+            </div>
+            <div>
+                <p class="text-4xl font-headline font-extrabold text-error group-hover:text-on-error">{{ discrepancias|length }}</p>
+                <p class="text-xs text-on-surface-variant mt-1 group-hover:text-on-error/70">Revisión pendiente</p>
+            </div>
+        </div>
+
+        {# Metas semanales #}
+        <div class="bg-surface-container-lowest p-8 rounded-[40px] flex flex-col justify-between shadow-sm">
+            <div class="flex justify-between items-start mb-6">
+                <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Metas Semanales</span>
+                <span class="material-symbols-outlined text-on-surface-variant">ads_click</span>
+            </div>
+            <div class="space-y-3">
+                <div class="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
+                    <div class="bg-primary h-full rounded-full" style="width: {{ progreso_meta }}%"></div>
+                </div>
+                <div class="flex justify-between">
+                    <p class="text-xs font-bold text-primary">{{ progreso_meta }}%</p>
+                    <p class="text-xs text-on-surface-variant">${{ objetivo }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── Gráfica + Cierres ── #}
+    <section class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-stretch px-4">
+        {# Curva de ventas #}
+        <div class="lg:col-span-3 bg-surface-container-lowest rounded-[60px] p-10 shadow-sm border border-outline-variant/10">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h3 class="text-2xl font-headline font-extrabold text-on-surface">Curva de Ventas Diarias</h3>
+                    <p class="text-sm text-on-surface-variant mt-1">Ingresos de los últimos 7 días</p>
+                </div>
+                <div class="flex gap-2 items-center bg-surface-container-high px-4 py-2 rounded-full">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-primary"></span>
+                    <span class="text-xs font-bold text-on-surface-variant">Actual</span>
+                </div>
+            </div>
+            <div class="h-72 relative">
+                <canvas id="ventasSemanaChart"></canvas>
+            </div>
+        </div>
+
+        {# Últimos cierres #}
+        <div class="lg:col-span-2 bg-tertiary-container text-on-tertiary-container rounded-[60px] p-10 flex flex-col relative overflow-hidden shadow-xl shadow-tertiary/10">
+            <div class="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
+                <span class="material-symbols-outlined text-[120px]">point_of_sale</span>
+            </div>
+            <h3 class="text-2xl font-headline font-extrabold mb-8 relative z-10">Últimos Cierres</h3>
+            <div class="space-y-6 relative z-10 flex-1">
+                {% for cierre in ultimos_cierres %}
+                <div class="flex justify-between items-center border-b border-on-tertiary/15 pb-4">
+                    <div>
+                        <p class="text-sm font-extrabold">{{ cierre.fecha|date:"d M" }} — {{ cierre.get_turno_display }}</p>
+                        <p class="text-xs opacity-75 font-medium">{{ cierre.responsable.get_full_name|default:cierre.responsable.username }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xl font-headline font-black">${{ cierre.monto_total|floatformat:2 }}</p>
+                        {% if cierre.diferencia == 0 %}
+                            <span class="text-[9px] uppercase font-black opacity-60 tracking-tighter">OK</span>
+                        {% else %}
+                            <span class="text-[9px] uppercase font-black bg-error-container text-error px-2 py-0.5 rounded-full">Diferencia</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="flex flex-col items-center justify-center py-10 opacity-60">
+                    <span class="material-symbols-outlined text-4xl mb-2">tab_close</span>
+                    <p class="text-sm font-bold">Sin cierres registrados</p>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="mt-8 w-full py-4 bg-on-tertiary-container text-tertiary font-black rounded-full hover:bg-tertiary-fixed transition-all hover:scale-105">
+                VER HISTORIAL COMPLETO
+            </button>
+        </div>
+    </section>
+
+    {# ── Tabla de discrepancias ── #}
+    <section class="bg-surface-container-lowest rounded-[60px] p-10 md:p-12 shadow-sm border border-outline-variant/10 mx-4">
+        <div class="flex justify-between items-start mb-10">
+            <div>
+                <h3 class="text-2xl font-headline font-extrabold text-on-surface">Discrepancias de Inventario</h3>
+                <p class="text-sm text-on-surface-variant mt-1">Variaciones críticas detectadas en el último conteo</p>
+            </div>
+            <span class="bg-error-container text-on-error-container px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm shadow-error/10">
+                Atención Requerida
+            </span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-separate border-spacing-y-4">
+                <thead>
+                    <tr class="text-on-surface-variant/50 font-label text-[10px] uppercase tracking-[0.2em]">
+                        <th class="px-8 pb-2">Insumo</th>
+                        <th class="px-6 pb-2 text-right">Teórico</th>
+                        <th class="px-6 pb-2 text-right">Real</th>
+                        <th class="px-6 pb-2 text-right">Diferencia</th>
+                        <th class="px-6 pb-2 text-right">Costo Est.</th>
+                        <th class="px-8 pb-2 text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insumo in discrepancias %}
+                    <tr class="bg-surface-container-low hover:bg-surface-container-highest transition-all duration-200 group cursor-pointer shadow-sm">
+                        <td class="px-8 py-5 rounded-l-[30px]">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                                    <span class="material-symbols-outlined text-primary text-xl">{{ insumo.icono|default:'inventory_2' }}</span>
+                                </div>
+                                <span class="font-bold text-on-surface">{{ insumo.nombre }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-right text-sm font-bold text-on-surface-variant">{{ insumo.stock_esperado }} {{ insumo.unidad }}</td>
+                        <td class="px-6 py-5 text-right text-sm font-bold text-on-surface">{{ insumo.stock_fisico }} {{ insumo.unidad }}</td>
+                        <td class="px-6 py-5 text-right">
+                            <span class="text-error font-black bg-error/5 px-3 py-1 rounded-full">{{ insumo.diferencia }} {{ insumo.unidad }}</span>
+                        </td>
+                        <td class="px-6 py-5 text-right text-sm font-bold text-on-surface">${{ insumo.costo_diferencia }}</td>
+                        <td class="px-8 py-5 text-center rounded-r-[30px]">
+                            <button class="bg-primary text-on-primary text-[10px] font-black px-4 py-2 rounded-full hover:shadow-lg shadow-primary/20 transition-all opacity-0 group-hover:opacity-100 uppercase tracking-tighter">
+                                Investigar
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-16 text-center text-on-surface-variant">
+                            <div class="flex flex-col items-center gap-3">
+                                <span class="material-symbols-outlined text-5xl text-primary/20">verified</span>
+                                <p class="text-sm font-bold uppercase tracking-widest opacity-60">Sin discrepancias detectadas</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {# ── Insight + Próximo inventario ── #}
+    <section class="flex flex-col md:flex-row gap-8 px-4">
+        <div class="flex-1 bg-surface-container-high rounded-[50px] p-8 flex items-center gap-8 border border-outline-variant/10 shadow-sm">
+            <div class="w-24 h-24 shrink-0 rounded-[30px] overflow-hidden shadow-inner">
+                <img alt="Insight" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2ZA_KSN7LyLbR0EEgar8hBo31OFSWYZdvBb6rMHzdqf3Dr-PEE5GZZSLQqT_C-1Enf5Rnvd7VGd9JwT9XEaWRghwaVboGthCq9XHvVZqVQEYBGavG0JWESlY3qMXFzWPacItvPvfW7YkFY0RnkJBZlylYoZoNrtabv5gIKxmq8h_Ic2hbjSaqQKHEar2PKT9EJ70EYlyj5N83QWwjeaK4NXyBDLDKVbX_J0pipxP9gvccbw8-c33b39rMUMIRbUK1srlA67taq6gs" />
+            </div>
+            <div>
+                <h4 class="font-headline font-black text-xl text-on-surface">Insight de la Semana</h4>
+                <p class="text-sm text-on-surface-variant leading-relaxed italic mt-2">
+                    "El consumo de carbón aumentó un 15% los sábados. Revisa la eficiencia de los hornos centrales."
+                </p>
+            </div>
+        </div>
+        <div class="flex-1 bg-primary-container text-on-primary-container rounded-[50px] p-8 flex items-center justify-between shadow-xl shadow-primary/5">
+            <div>
+                <h4 class="font-headline font-black text-xl">Próximo Inventario General</h4>
+                <p class="text-sm font-medium opacity-80 mt-1">Domingo 29 de Octubre, 22:00 hrs.</p>
+            </div>
+            <button class="material-symbols-outlined bg-on-primary-container text-primary-container p-5 rounded-3xl hover:scale-110 transition-transform shadow-lg">
+                event_note
+            </button>
+        </div>
+    </section>
+</div>
+{% endwith %}
+{% endblock %}
+

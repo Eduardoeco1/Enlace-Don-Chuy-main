@@ -1,0 +1,332 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block titulo %}Llama y Carbón{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: { "colors": {
+                "tertiary-container":"#8d6e63","outline-variant":"#e0c0b2","on-surface-variant":"#594238",
+                "surface":"#fcf9f8","on-primary-container":"#fffbff","error-container":"#ffdad6",
+                "surface-container-high":"#eae7e7","on-error":"#ffffff","surface-container":"#f0eded",
+                "on-secondary":"#ffffff","on-primary":"#ffffff","tertiary-fixed":"#ffdbce",
+                "tertiary-fixed-dim":"#e4beb2","on-background":"#1b1c1c","secondary-container":"#cfe2f9",
+                "secondary":"#4e6073","tertiary":"#72554b","primary-container":"#b55d00",
+                "on-error-container":"#93000a","surface-container-highest":"#e5e2e1","outline":"#8c7166",
+                "error":"#ba1a1a","surface-dim":"#dcd9d9","on-tertiary":"#ffffff",
+                "surface-container-low":"#f6f3f2","primary":"#904800","on-surface":"#1b1c1c",
+                "surface-container-lowest":"#ffffff","primary-fixed":"#ffdcc5",
+                "on-secondary-container":"#526478","on-tertiary-container":"#fffbff",
+                "secondary-fixed":"#d1e4fb","inverse-on-surface":"#f3f0ef"
+            }, "fontFamily":{"headline":["Manrope"],"body":["Work Sans"],"label":["Work Sans"]} } }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        body { font-family: 'Work Sans', sans-serif; }
+        h1,h2,h3 { font-family: 'Manrope', sans-serif; }
+        .glass-panel { background: rgba(246,243,242,0.8); backdrop-filter: blur(24px); }
+        .dropdown-menu { transition: opacity 0.15s ease, transform 0.15s ease; }
+        .dropdown-menu.hidden { opacity:0; pointer-events:none; transform: translateY(-8px); }
+        .dropdown-menu:not(.hidden) { opacity:1; transform: translateY(0); }
+    </style>
+    {% block estilos_extra %}{% endblock %}
+</head>
+
+<body class="bg-surface text-on-surface min-h-screen flex">
+
+    <aside class="hidden md:flex flex-col h-screen w-64 bg-[#f6f3f2] font-['Manrope'] font-semibold text-sm p-4 gap-2 sticky top-0">
+        <div class="mb-8 px-2 py-4">
+            <h2 class="text-lg font-black text-orange-900 tracking-tighter">Llama y Carbón</h2>
+            <p class="text-xs text-stone-500 font-medium">Libro Mayor Artesanal</p>
+        </div>
+
+        <nav class="flex flex-col gap-1 flex-1">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'tablero' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'PanelControl:panel' %}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Panel de Control</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'ventas' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Ventas:Ventas' %}">
+                <span class="material-symbols-outlined">point_of_sale</span>
+                <span>Punto de Venta</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'inventario' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Inventario:inventario' %}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span>Inventario</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'entrada' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'EntradaMercancia:entrada' %}">
+                <span class="material-symbols-outlined">input</span>
+                <span>Entrada de Mercancía</span>
+            </a>
+
+            {% if es_gerente or es_duena %}
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'caja' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'CierreCaja:cierre' %}">
+                <span class="material-symbols-outlined">payments</span>
+                <span>Cierre de Caja</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'personal' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Personal:personal' %}">
+                <span class="material-symbols-outlined">badge</span>
+                <span>Personal</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                {% if seccion_activa == 'reportes' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Reportes:reporte' %}">
+                <span class="material-symbols-outlined">assessment</span>
+                <span>Reportes</span>
+            </a>
+            {% endif %}
+          
+             {# ── Asistencia (todos los roles) ── #}
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            {% if seccion_activa == 'asistencia' %}bg-white text-orange-900 shadow-sm
+            {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+            href="{% url 'Personal:asistencia' %}">
+            <span class="material-symbols-outlined">fingerprint</span>
+            <span>Mi Asistencia</span>
+
+            </a>
+
+            {# ── Tabla de asistencias (solo Gerente y Dueña) ── #}
+            {% if es_gerente %}
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            {% if seccion_activa == 'asistencias' %}bg-white text-orange-900 shadow-sm
+            {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+            href="{% url 'Personal:asistencias' %}">
+            <span class="material-symbols-outlined">table_chart</span>
+            <span>Control de Asistencias</span>
+
+            </a>
+            {% endif %}
+
+        </nav>
+
+        <div class="mt-auto space-y-2">
+            <a href="{% url 'Perfil:perfil' %}"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+                   {% if seccion_activa == 'perfil' %}bg-white text-orange-900 shadow-sm
+                   {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span>Mi Perfil</span>
+            </a>
+
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit"
+                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-stone-600 hover:text-error hover:bg-error-container/20 text-left">
+                    <span class="material-symbols-outlined">logout</span>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
+
+            <div class="p-3 bg-surface-container rounded-xl flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary flex-shrink-0">
+                    <span class="material-symbols-outlined text-sm">person</span>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-xs font-bold truncate">{{ usuario_nombre|default:request.user.username }}</p>
+                    <p class="text-[10px] text-on-surface-variant truncate">
+                        {% if es_duena %}Dueña{% elif es_gerente %}Gerente{% else %}Empleado{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+
+        <header class="flex justify-between items-center w-full px-8 py-4 bg-[#fcf9f8] font-['Manrope'] font-bold sticky top-0 z-40 border-b border-outline-variant/20">
+            <div>
+                <h1 class="text-xl font-extrabold text-orange-900 tracking-tighter">
+                    {% block titulo_pagina %}{% endblock %}
+                </h1>
+            </div>
+
+            <div class="flex items-center gap-2 relative">
+                
+                {% if es_duena and todas_sucursales %}
+                <div class="flex items-center gap-2 mr-4">
+                    <span class="material-symbols-outlined text-primary text-sm">store</span>
+                    <form method="post" action="{% url 'Sucursales:cambiar_sucursal' %}" class="flex items-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}" />
+                        <select name="sucursal_id" 
+                                onchange="this.form.submit()"
+                                class="bg-surface-container-high border-none rounded-xl text-xs font-bold py-1.5 focus:ring-primary/30">
+                            <option value="">🌐 Todas las Sucursales</option>
+                            {% for suc in todas_sucursales %}
+                            <option value="{{ suc.id }}" {% if sucursal_activa.id == suc.id %}selected{% endif %}>
+                                📍 {{ suc.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                {% elif sucursal_activa %}
+                <div class="hidden md:flex items-center gap-2 mr-4 px-3 py-1.5 bg-surface-container-high rounded-xl">
+                    <span class="material-symbols-outlined text-primary text-sm">location_on</span>
+                    <span class="text-xs font-bold text-on-surface-variant">{{ sucursal_activa.nombre }}</span>
+                </div>
+                {% endif %}
+
+                {# Botón e Indicador de Notificaciones #}
+                <div class="relative">
+                    <button id="btnNotificaciones" onclick="toggleDropdown('dropdownNotificaciones')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors relative">
+                        <span class="material-symbols-outlined text-stone-500">notifications</span>
+                        {% if total_notificaciones > 0 %}
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-error text-on-error text-[9px] font-black rounded-full flex items-center justify-center">{{ total_notificaciones }}</span>
+                        {% endif %}
+                    </button>
+
+                    {# Dropdown notificaciones con redirección #}
+                    <div id="dropdownNotificaciones" class="dropdown-menu hidden absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
+                        <div class="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between">
+                            <h3 class="font-bold text-sm text-on-surface">Notificaciones</h3>
+                            {% if total_notificaciones > 0 %}
+                            <span class="text-xs bg-error-container text-on-error-container px-2 py-0.5 rounded-full font-bold">
+                                {{ total_notificaciones }} nuevas
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="max-h-72 overflow-y-auto divide-y divide-outline-variant/10">
+                            {% for notif in notificaciones %}
+                            <a href="{{ notif.url|default:'#' }}"
+                               class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors cursor-pointer">
+                                <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-sm {{ notif.color }}">{{ notif.icono }}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold text-on-surface truncate">{{ notif.titulo }}</p>
+                                    <p class="text-[10px] text-on-surface-variant mt-0.5">{{ notif.detalle }}</p>
+                                </div>
+                                <span class="material-symbols-outlined text-outline text-sm flex-shrink-0 mt-1">chevron_right</span>
+                            </a>
+                            {% empty %}
+                            <div class="px-4 py-8 text-center">
+                                <span class="material-symbols-outlined text-3xl text-outline block mb-2">notifications_none</span>
+                                <p class="text-xs text-on-surface-variant">Sin notificaciones nuevas</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="px-4 py-3 border-t border-outline-variant/20 flex justify-between">
+                            <a href="{% url 'Perfil:perfil' %}" class="text-xs font-bold text-primary hover:underline">
+                                Ver actividad completa
+                            </a>
+                            <span class="text-xs text-on-surface-variant">{{ total_notificaciones }} alertas</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Botón de perfil #}
+                <div class="relative">
+                    <button id="btnPerfil" onclick="toggleDropdown('dropdownPerfil')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+                        <span class="material-symbols-outlined text-stone-500">account_circle</span>
+                    </button>
+
+                    <div id="dropdownPerfil" class="dropdown-menu hidden absolute right-0 top-12 w-64 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
+                        <div class="px-4 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-on-primary/20 flex items-center justify-center">
+                                    <span class="material-symbols-outlined">person</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold">{{ usuario_nombre|default:request.user.username }}</p>
+                                    <p class="text-[10px] opacity-80">{{ request.user.email|default:"Sin email" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="{% url 'Perfil:perfil' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container-low transition-colors">
+                                <span class="material-symbols-outlined text-on-surface-variant text-sm">manage_accounts</span>
+                                Ver perfil completo
+                            </a>
+                        </div>
+                        <div class="border-t border-outline-variant/20 py-2">
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-error hover:bg-error-container/20 transition-colors text-left">
+                                    <span class="material-symbols-outlined text-sm">logout</span>
+                                    Cerrar Sesión
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+        <div class="px-8 pt-4 space-y-2">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-3
+                {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+                {% elif message.tags == 'warning' %}bg-tertiary-fixed text-on-tertiary-fixed
+                {% else %}bg-error-container text-on-error-container{% endif %}">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base">
+                        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'warning' %}warning{% else %}error{% endif %}
+                    </span>
+                    {{ message }}
+                </div>
+                <button onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100"><span class="material-symbols-outlined text-base">close</span></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <main class="flex-1 p-8">
+            {% block contenido %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const allDropdowns = ['dropdownNotificaciones', 'dropdownPerfil'];
+            allDropdowns.forEach(d => { if (d !== id) document.getElementById(d).classList.add('hidden'); });
+            dropdown.classList.toggle('hidden');
+        }
+        document.addEventListener('click', function(event) {
+            const dropdowns = ['dropdownNotificaciones', 'dropdownPerfil'];
+            const btns = ['btnNotificaciones', 'btnPerfil'];
+            if (!btns.some(b => document.getElementById(b)?.contains(event.target)) && !dropdowns.some(d => document.getElementById(d)?.contains(event.target))) {
+                dropdowns.forEach(d => document.getElementById(d)?.classList.add('hidden'));
+            }
+        });
+    </script>
+    {% block scripts_extra %}{% endblock %}
+</body>
+</html>
+
+

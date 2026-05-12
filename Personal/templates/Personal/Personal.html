@@ -1,0 +1,379 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Gestión de Personal — Llama y Carbón{% endblock %}
+{% block titulo_pagina %}Gestión de Personal{% endblock %}
+
+{% block contenido %}
+{% with seccion_activa='personal' %}
+
+<div class="space-y-8 max-w-7xl">
+
+    {# ── Mensajes ── #}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
+            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+            {% else %}bg-error-container text-on-error-container{% endif %}">
+            <span class="material-symbols-outlined">
+                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {# ── Encabezado ── #}
+    <div class="flex justify-between items-end">
+        <div class="space-y-1">
+            <h2 class="text-4xl font-extrabold text-primary font-headline">Gestión de Personal</h2>
+            <p class="text-on-surface-variant">Administra el equipo de cocina y sala de tus sucursales de Atlixco y Acapulco.</p>
+        </div>
+        <button onclick="prepararModalAñadir()"
+            class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-primary-container transition-all">
+            <span class="material-symbols-outlined text-xl">add</span>
+            Añadir Personal
+        </button>
+    </div>
+
+    {# ── Widgets de métricas ── #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Total Empleados</p>
+                <h3 class="text-4xl font-extrabold text-primary mt-1 font-headline">
+                    {{ total_empleados|stringformat:"02d" }}
+                </h3>
+            </div>
+            <div class="bg-surface-container-high p-3 rounded-full">
+                <span class="material-symbols-outlined text-on-surface-variant">groups</span>
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Activos</p>
+                <h3 class="text-4xl font-extrabold text-green-700 mt-1 font-headline">
+                    {{ activos|stringformat:"02d" }}
+                </h3>
+            </div>
+            <div class="bg-green-50 p-3 rounded-full">
+                <span class="material-symbols-outlined text-green-600">check_circle</span>
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/20 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">En Turno</p>
+                <h3 class="text-4xl font-extrabold text-tertiary mt-1 font-headline">
+                    {{ en_turno|stringformat:"02d" }}
+                </h3>
+            </div>
+            <div class="bg-tertiary-fixed p-3 rounded-full">
+                <span class="material-symbols-outlined text-tertiary">schedule</span>
+            </div>
+        </div>
+    </div>
+
+    {# ── Filtros ── #}
+    <form method="get" action="{% url 'Personal:personal' %}" class="flex flex-wrap items-center gap-4">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+            <input type="text" name="q" value="{{ busqueda }}"
+                   placeholder="Buscar por alias, nombre o correo..."
+                   class="pl-10 pr-4 py-2 bg-surface-container-high border-none rounded-xl text-sm focus:ring-2 focus:ring-primary w-72" />
+        </div>
+
+        <select name="sucursal" onchange="this.form.submit()"
+            class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary">
+            <option value="">Todas las Sucursales</option>
+            {% for suc in sucursales %}
+            <option value="{{ suc.id }}" {% if sucursal_sel == suc.id|stringformat:"s" %}selected{% endif %}>
+                {{ suc.nombre }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="rol" onchange="this.form.submit()"
+            class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary">
+            <option value="">Todos los Roles</option>
+            {% for cod, nombre in roles_list %}
+            <option value="{{ cod }}" {% if rol_sel == cod %}selected{% endif %}>
+                {{ nombre }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <a href="{% url 'Personal:personal' %}" class="text-sm font-bold text-primary hover:underline ml-auto">
+            Limpiar Filtros
+        </a>
+    </form>
+
+    {# ── Tabla de equipo ── #}
+    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
+        <div class="px-8 py-5 border-b border-outline-variant/20 bg-surface-container-low/50">
+            <h4 class="text-xl font-bold text-primary font-headline">Equipo de Trabajo</h4>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low text-left">
+                        <th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Empleado</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Rol</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Sucursal</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Estado</th>
+                        <th class="px-8 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for empleado in page_obj %}
+                    <tr class="hover:bg-surface-container-low transition-colors group">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30 flex-shrink-0">
+                                    <img alt="{{ empleado.nombre_completo }}"
+                                         src="{{ empleado.foto_url }}"
+                                         onerror="this.src='https://placehold.co/40x40/f0eded/904800?text={{ empleado.usuario.username|first|upper }}'"
+                                         class="w-full h-full object-cover" />
+                                </div>
+                                <div>
+                                    <p class="font-bold text-primary">{{ empleado.nombre_completo }}</p>
+                                    <p class="text-xs text-on-surface-variant">@{{ empleado.usuario.username }} • {{ empleado.usuario.email }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-5 text-sm text-on-surface">
+                            {{ empleado.get_rol_display }}
+                        </td>
+                        <td class="px-6 py-5 text-sm text-on-surface">
+                            {{ empleado.sucursal.nombre|default:"Sin sucursal" }}
+                        </td>
+                        <td class="px-6 py-5">
+                            <span class="px-3 py-1 {{ empleado.badge_color }} text-[10px] font-bold rounded-full uppercase tracking-tighter">
+                                {{ empleado.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button class="p-2 hover:bg-surface-container-high rounded-full text-primary" 
+                                        title="Editar"
+                                        onclick="abrirModalEdicion({
+                                            id: '{{ empleado.id }}',
+                                            first_name: '{{ empleado.usuario.first_name }}',
+                                            last_name: '{{ empleado.usuario.last_name }}',
+                                            username: '{{ empleado.usuario.username }}',
+                                            email: '{{ empleado.usuario.email }}',
+                                            rol: '{{ empleado.rol }}',
+                                            sucursal: '{{ empleado.sucursal.id }}',
+                                            estado: '{{ empleado.estado }}',
+                                            telefono: '{{ empleado.telefono }}'
+                                        })">
+                                    <span class="material-symbols-outlined text-xl">edit</span>
+                                </button>
+                                
+                                <a href="{% url 'Personal:eliminar_empleado' empleado.id %}" 
+                                   onclick="return confirm('¿Estás seguro de eliminar a @{{ empleado.usuario.username }}? Esta acción no se puede deshacer.')"
+                                   class="p-2 hover:bg-error-container rounded-full text-error" 
+                                   title="Eliminar">
+                                    <span class="material-symbols-outlined text-xl">delete</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-on-surface-variant text-sm">
+                            No hay empleados registrados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ── Turnos + Cobertura ── #}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
+        <div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/20 shadow-sm">
+            <h4 class="text-xl font-bold text-primary font-headline mb-4">Próximos Turnos</h4>
+            <div class="space-y-4">
+                {% for turno in proximos_turnos %}
+                <div class="flex items-center justify-between border-l-4 border-primary pl-4 py-2">
+                    <div>
+                        <p class="font-bold text-primary">{{ turno.nombre }}</p>
+                        <p class="text-xs text-on-surface-variant">{{ turno.fecha|date:"d M" }}, {{ turno.hora_inicio|time:"H:i" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-on-surface-variant">Sin turnos programados.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/20 shadow-sm">
+            <h4 class="text-xl font-bold text-primary font-headline mb-4">Cobertura de Personal</h4>
+            <div class="space-y-4">
+                {% for rol in roles_cobertura %}
+                <div class="space-y-1">
+                    <div class="flex justify-between text-sm">
+                        <span class="font-medium">{{ rol.nombre }}</span>
+                        <span class="font-bold {% if rol.critico %}text-error{% elif rol.bajo %}text-tertiary{% else %}text-green-700{% endif %}">
+                            {{ rol.activos }}/{{ rol.minimo }} ({{ rol.porcentaje }}%)
+                        </span>
+                    </div>
+                    <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all {% if rol.critico %}bg-error{% elif rol.bajo %}bg-tertiary{% else %}bg-green-600{% endif %}"
+                             style="width: {{ rol.porcentaje }}%">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Modal Dinámico ── #}
+<div id="modalPersonal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
+
+        <div class="flex items-center justify-between mb-6">
+            <h3 id="modalTitle" class="text-xl font-bold font-headline text-primary">Añadir Personal</h3>
+            <button onclick="cerrarModal()" class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+
+        <form id="formPersonal" method="post" action="{% url 'Personal:personal' %}" class="space-y-4">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Nombre</label>
+                    {{ form.first_name }}
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Apellido</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-primary uppercase tracking-wider">Nombre de Usuario (Alias)</label>
+                {{ form.username }}
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-xs font-bold text-primary uppercase tracking-wider">Correo Electrónico</label>
+                {{ form.email }}
+            </div>
+
+            <div class="space-y-1">
+                <label id="passwordLabel" class="text-xs font-bold text-primary uppercase tracking-wider">Contraseña</label>
+                {{ form.password }}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Rol</label>
+                    {{ form.rol }}
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Sucursal</label>
+                    {{ form.sucursal }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Estado</label>
+                    {{ form.estado }}
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Teléfono</label>
+                    {{ form.telefono }}
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-outline-variant/10 flex items-center justify-between gap-3">
+                <div class="flex gap-2">
+                    <button type="button" onclick="cerrarModal()"
+                        class="px-4 py-3 text-on-surface-variant font-bold hover:bg-surface-container-high rounded-xl transition-all text-sm">
+                        Cancelar
+                    </button>
+                    
+                    {# Botón Eliminar secundario (solo visible al editar) #}
+                    <a id="btnEliminarModal" href="#" 
+                       onclick="return confirm('¿Eliminar definitivamente a este empleado?')"
+                       class="hidden px-4 py-3 bg-error-container text-error font-bold rounded-xl hover:bg-error/10 transition-all text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">delete</span>
+                        Eliminar
+                    </a>
+                </div>
+
+                <button type="submit" id="submitBtn"
+                    class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-all shadow-md">
+                    <span id="btnIcon" class="material-symbols-outlined text-sm">person_add</span>
+                    <span id="btnText">Registrar Empleado</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('modalPersonal');
+    const form = document.getElementById('formPersonal');
+    const modalTitle = document.getElementById('modalTitle');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnEliminarModal = document.getElementById('btnEliminarModal');
+    const urlAñadir = "{% url 'Personal:personal' %}";
+
+    function cerrarModal() {
+        modal.classList.add('hidden');
+    }
+
+    function prepararModalAñadir() {
+        form.reset();
+        form.action = urlAñadir;
+        modalTitle.innerText = "Añadir Personal";
+        btnText.innerText = "Registrar Empleado";
+        btnIcon.innerText = "person_add";
+        btnEliminarModal.classList.add('hidden');
+        document.getElementById('passwordLabel').innerText = "Contraseña";
+        modal.classList.remove('hidden');
+    }
+
+    function abrirModalEdicion(data) {
+        form.reset();
+        form.action = `/personal/editar/${data.id}/`;
+        modalTitle.innerText = "Editar Personal";
+        btnText.innerText = "Guardar Cambios";
+        btnIcon.innerText = "save";
+        
+        // Configurar botón eliminar en el modal
+        btnEliminarModal.href = `/personal/eliminar/${data.id}/`;
+        btnEliminarModal.classList.remove('hidden');
+
+        document.getElementById('passwordLabel').innerText = "Nueva Contraseña (opcional)";
+
+        form.querySelector('[name="first_name"]').value = data.first_name;
+        form.querySelector('[name="last_name"]').value = data.last_name;
+        form.querySelector('[name="username"]').value = data.username;
+        form.querySelector('[name="email"]').value = data.email;
+        form.querySelector('[name="rol"]').value = data.rol;
+        form.querySelector('[name="sucursal"]').value = data.sucursal;
+        form.querySelector('[name="estado"]').value = data.estado;
+        form.querySelector('[name="telefono"]').value = data.telefono;
+
+        modal.classList.remove('hidden');
+    }
+</script>
+
+{% endwith %}
+{% endblock %}
+
+
+
+

@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block titulo %}Tabla de Asistencias{% endblock %}
+{% block titulo_pagina %}Control de Asistencias{% endblock %}
+
+{% block contenido %}
+{% with seccion_activa='personal' %}
+<div class="space-y-6">
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
+            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+            {% else %}bg-error-container text-on-error-container{% endif %}">
+            <span class="material-symbols-outlined">
+                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {# Widgets resumen #}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-surface-container-lowest rounded-xl p-5 text-center shadow-sm">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Total</p>
+            <p class="text-3xl font-extrabold text-primary mt-1">{{ total }}</p>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 text-center shadow-sm border-l-4 border-green-500">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Presentes</p>
+            <p class="text-3xl font-extrabold text-green-700 mt-1">{{ presentes }}</p>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 text-center shadow-sm border-l-4 border-error">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Ausentes</p>
+            <p class="text-3xl font-extrabold text-error mt-1">{{ ausentes }}</p>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 text-center shadow-sm border-l-4 border-tertiary">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Descansos</p>
+            <p class="text-3xl font-extrabold text-tertiary mt-1">{{ descansos }}</p>
+        </div>
+    </div>
+
+    {# Filtros #}
+    <form method="get" class="flex flex-wrap gap-4 items-center bg-surface-container-lowest rounded-xl p-4">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-on-surface-variant text-sm">calendar_today</span>
+            <input type="date" name="fecha" value="{{ fecha_filtro|date:'Y-m-d' }}"
+                   class="bg-surface-container-high border-none rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-primary" />
+        </div>
+        <select name="empleado" onchange="this.form.submit()"
+            class="bg-surface-container-high border-none rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-primary">
+            <option value="">Todos los Empleados</option>
+            {% for emp in empleados %}
+            <option value="{{ emp.id }}" {% if empleado_id == emp.id|stringformat:"s" %}selected{% endif %}>
+                {{ emp.nombre_completo }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit"
+            class="bg-primary text-on-primary px-4 py-2 rounded-xl text-sm font-bold">
+            Filtrar
+        </button>
+        <a href="{% url 'Personal:asistencias' %}"
+           class="text-sm font-bold text-primary hover:underline ml-auto">
+            Limpiar
+        </a>
+    </form>
+
+    {# Tabla de asistencias #}
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center">
+            <h3 class="font-bold text-primary font-headline text-lg">
+                Asistencias — {{ fecha_filtro|date:"d \d\e F, Y" }}
+            </h3>
+            <button onclick="document.getElementById('modalRegistrar').classList.remove('hidden')"
+                class="bg-primary text-on-primary px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">add</span>
+                Registrar
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-surface-container-low text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                        <th class="px-6 py-4">Empleado</th>
+                        <th class="px-4 py-4">Rol</th>
+                        <th class="px-4 py-4">Día Descanso</th>
+                        <th class="px-4 py-4">Entrada</th>
+                        <th class="px-4 py-4">Salida</th>
+                        <th class="px-4 py-4">Horas</th>
+                        <th class="px-4 py-4">Estado</th>
+                        <th class="px-4 py-4">Justificante</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                    {% for a in asistencias %}
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-sm text-on-surface">
+                                {{ a.empleado.nombre_completo }}
+                            </p>
+                            <p class="text-xs text-on-surface-variant">
+                                {{ a.empleado.sucursal|default:"—" }}
+                            </p>
+                        </td>
+                        <td class="px-4 py-4 text-sm text-on-surface">
+                            {{ a.empleado.rol|default:"—" }}
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            {% if a.es_dia_descanso %}
+                                <span class="text-tertiary font-bold text-lg">🏖️</span>
+                            {% else %}
+                                <span class="text-on-surface-variant/30 text-sm">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4 text-sm font-medium text-on-surface">
+                            {{ a.hora_entrada|time:"H:i"|default:"—" }}
+                        </td>
+                        <td class="px-4 py-4 text-sm font-medium text-on-surface">
+                            {{ a.hora_salida|time:"H:i"|default:"—" }}
+                        </td>
+                        <td class="px-4 py-4">
+                            {% if a.horas_trabajadas > 0 %}
+                            <span class="font-bold text-primary">
+                                {{ a.horas_trabajadas }} hrs
+                            </span>
+                            {% else %}
+                            <span class="text-on-surface-variant/50">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4">
+                            {% if a.estado == 'presente' %}
+                                <span class="px-2 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-full">Presente</span>
+                            {% elif a.estado == 'ausente' %}
+                                <span class="px-2 py-1 bg-error-container text-on-error-container text-xs font-bold rounded-full">Ausente</span>
+                            {% elif a.estado == 'tardanza' %}
+                                <span class="px-2 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant text-xs font-bold rounded-full">Tardanza</span>
+                            {% elif a.estado == 'descanso' %}
+                                <span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-xs font-bold rounded-full">Descanso</span>
+                            {% else %}
+                                <span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-xs font-bold rounded-full">{{ a.get_estado_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            {% if a.tiene_justificante %}
+                            <a href="{{ a.justificante.url }}" target="_blank"
+                               class="text-primary hover:underline text-xs font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">description</span>
+                                Ver
+                            </a>
+                            {% else %}
+                            <span class="text-on-surface-variant/40 text-xs">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-on-surface-variant text-sm">
+                            <span class="material-symbols-outlined text-4xl block mb-2">event_busy</span>
+                            Sin asistencias registradas para esta fecha.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# Modal registrar asistencia #}
+<div id="modalRegistrar"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold font-headline text-primary">Registrar Asistencia</h3>
+            <button onclick="document.getElementById('modalRegistrar').classList.add('hidden')"
+                class="p-2 rounded-full hover:bg-surface-container-high">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+        <form method="post" enctype="multipart/form-data" action="{% url 'Personal:asistencias' %}">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Empleado</label>
+                    {{ form_admin.empleado }}
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider">Fecha</label>
+                        {{ form_admin.fecha }}
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider">Estado</label>
+                        {{ form_admin.estado }}
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider">Entrada</label>
+                        {{ form_admin.hora_entrada }}
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-primary uppercase tracking-wider">Salida</label>
+                        {{ form_admin.hora_salida }}
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    {{ form_admin.es_dia_descanso }}
+                    <label class="text-sm font-medium text-on-surface">Marcar como día de descanso</label>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs font-bold text-primary uppercase tracking-wider">Justificante</label>
+                    {{ form_admin.justificante }}
+                </div>
+                {{ form_admin.notas }}
+            </div>
+            <div class="pt-4 border-t border-outline-variant/10 flex justify-between mt-4">
+                <button type="button"
+                    onclick="document.getElementById('modalRegistrar').classList.add('hidden')"
+                    class="px-6 py-3 text-on-surface-variant font-bold hover:bg-surface-container-high rounded-xl">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="bg-primary text-on-primary px-8 py-3 rounded-xl font-bold">
+                    Guardar Asistencia
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if form_admin.errors %}
+<script>document.getElementById('modalRegistrar').classList.remove('hidden');</script>
+{% endif %}
+
+{% endwith %}
+{% endblock %}
+

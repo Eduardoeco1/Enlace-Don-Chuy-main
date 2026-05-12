@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Cierre de Caja — Llama y Carbón{% endblock %}
+{% block titulo_pagina %}Cierre de Caja{% endblock %}
+
+{% block contenido %}
+{% with seccion_activa='caja' %}
+
+<div class="max-w-6xl mx-auto space-y-6">
+
+    {# ── Mensajes ── #}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
+            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+            {% elif message.tags == 'warning' %}bg-tertiary-fixed text-on-tertiary-fixed
+            {% else %}bg-error-container text-on-error-container{% endif %}">
+            <span class="material-symbols-outlined">
+                {% if message.tags == 'success' %}check_circle
+                {% elif message.tags == 'warning' %}warning
+                {% else %}error{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {# ── Fecha y sucursal dinámica ── #}
+    <div class="flex justify-between items-center">
+        <div>
+            {% if sucursal_actual %}
+            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                📍 {{ sucursal_actual.nombre }}
+            </span>
+            {% endif %}
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] uppercase text-on-surface-variant font-bold tracking-wider">Fecha de Hoy</p>
+            <p class="text-sm font-bold text-on-surface">{{ fecha_actual }}</p>
+        </div>
+    </div>
+
+    {# ── Resumen rápido del día ── #}
+    {% if num_pedidos > 0 %}
+    <div class="grid grid-cols-3 gap-4">
+        <div class="bg-surface-container-low rounded-xl px-4 py-3 text-center">
+            <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Pedidos Hoy</p>
+            <p class="text-2xl font-extrabold text-primary mt-1">{{ num_pedidos }}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl px-4 py-3 text-center">
+            <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Total Ventas</p>
+            <p class="text-2xl font-extrabold text-primary mt-1">${{ total_ventas|floatformat:2 }}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl px-4 py-3 text-center">
+            <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider">Esperado en Caja</p>
+            <p class="text-2xl font-extrabold text-primary mt-1">${{ total_esperado|floatformat:2 }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ── Formulario ── #}
+    <form method="post" action="{% url 'CierreCaja:cierre' %}" id="formCierre">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-12 gap-8">
+
+            {# ── Columna izquierda ── #}
+            <div class="col-span-12 lg:col-span-7 space-y-6">
+
+                {# Selector de turno #}
+                <div class="bg-surface-container-low rounded-xl px-6 py-4 flex items-center gap-4">
+                    <span class="material-symbols-outlined text-primary">schedule</span>
+                    <div class="flex-1">
+                        <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Turno</label>
+                        {{ form.turno }}
+                    </div>
+                    <span class="text-xs text-on-surface-variant font-medium">{{ hora_actual }} hrs</span>
+                </div>
+
+                {# Input efectivo real #}
+                <section class="bg-surface-container-lowest rounded-3xl p-10 flex flex-col items-center text-center shadow-sm">
+                    <span class="text-tertiary font-medium tracking-widest uppercase text-xs mb-6">Declaración de Efectivo</span>
+                    <h3 class="text-4xl font-extrabold text-on-surface mb-8">Total Efectivo en Mano</h3>
+
+                    <div class="w-full max-w-md relative">
+                        <span class="absolute left-6 top-1/2 -translate-y-1/2 text-4xl font-light text-outline">$</span>
+                        {{ form.efectivo_real }}
+                    </div>
+
+                    {% if form.efectivo_real.errors %}
+                        <p class="text-error text-xs mt-2">{{ form.efectivo_real.errors|join:", " }}</p>
+                    {% endif %}
+
+                    <div id="indicadorDiferencia" class="hidden mt-4 px-4 py-2 rounded-xl text-sm font-bold">
+                        Diferencia: <span id="valorDiferencia"></span>
+                    </div>
+
+                    <p class="mt-4 text-on-surface-variant text-sm max-w-sm">
+                        Ingresa el monto exacto contado físicamente al finalizar tu turno.
+                    </p>
+                </section>
+
+                {# Botón cerrar turno #}
+                <div class="flex justify-center">
+                    <button type="submit" id="btnCerrar"
+                        class="group flex items-center gap-4 bg-primary text-on-primary px-12 py-6 rounded-xl font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lock</span>
+                        <span>Cerrar Turno</span>
+                    </button>
+                </div>
+
+                {# Desglose de denominaciones MXN #}
+                <div class="bg-surface-container-low rounded-xl p-8">
+                    <h4 class="text-sm font-bold text-tertiary uppercase tracking-widest mb-6">Desglose de Denominaciones</h4>
+
+                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">Billetes</p>
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$1,000</span>
+                            {{ form.billetes_1000 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$500</span>
+                            {{ form.billetes_500 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$200</span>
+                            {{ form.billetes_200 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$100</span>
+                            {{ form.billetes_100 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$50</span>
+                            {{ form.billetes_50 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$20</span>
+                            {{ form.billetes_20 }}
+                        </div>
+                    </div>
+
+                    <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-3">Monedas</p>
+                    <div class="grid grid-cols-4 gap-3">
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center border border-outline-variant/20">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$10</span>
+                            {{ form.monedas_10 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center border border-outline-variant/20">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$5</span>
+                            {{ form.monedas_5 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center border border-outline-variant/20">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$2</span>
+                            {{ form.monedas_2 }}
+                        </div>
+                        <div class="bg-surface-container-lowest p-3 rounded-xl text-center border border-outline-variant/20">
+                            <span class="block text-[10px] text-outline uppercase font-bold mb-1">$1</span>
+                            {{ form.monedas_1 }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex justify-between items-center border-t border-outline-variant/20 pt-3">
+                        <span class="text-sm text-on-surface-variant font-medium">Total contado:</span>
+                        <span id="totalDenominaciones" class="font-extrabold text-primary text-xl">$0.00</span>
+                    </div>
+                </div>
+
+                {# Notas del turno #}
+                <div class="bg-surface-container-low rounded-xl p-6">
+                    <label class="text-xs font-bold text-on-surface-variant uppercase tracking-wider block mb-3">Notas del Turno</label>
+                    {{ form.notas }}
+                </div>
+            </div>
+
+            {# ── Columna derecha: Resumen del sistema ── #}
+            <div class="col-span-12 lg:col-span-5 space-y-6">
+                <div class="bg-surface-container-low rounded-xl p-8 flex flex-col">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-xl font-extrabold text-on-surface">Resumen del Sistema</h3>
+                        <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold rounded-full">REGISTRO EN VIVO</span>
+                    </div>
+
+                    <div class="space-y-6 flex-1">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-on-surface-variant text-xs mb-1">Ventas en Efectivo</p>
+                                <p class="text-2xl font-bold text-on-surface">${{ ventas_efectivo|floatformat:2 }}</p>
+                            </div>
+                            <span class="material-symbols-outlined text-outline">payments</span>
+                        </div>
+
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-on-surface-variant text-xs mb-1">Ventas con Tarjeta</p>
+                                <p class="text-2xl font-bold text-on-surface">${{ ventas_tarjeta|floatformat:2 }}</p>
+                            </div>
+                            <span class="material-symbols-outlined text-outline">credit_card</span>
+                        </div>
+
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-on-surface-variant text-xs mb-1">Otros (Apps/Delivery)</p>
+                                <p class="text-2xl font-bold text-on-surface">${{ ventas_delivery|floatformat:2 }}</p>
+                            </div>
+                            <span class="material-symbols-outlined text-outline">delivery_dining</span>
+                        </div>
+
+                        {# Fondo de caja EDITABLE y Total Esperado #}
+                        <div class="pt-6 border-t border-outline-variant/30">
+                            <div class="flex justify-between items-center mb-3">
+                                <p class="text-on-surface-variant text-sm font-medium">Fondo de Caja (Inicio)</p>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-outline text-sm font-light">$</span>
+                                    {{ form.fondo_inicial }}
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center bg-primary/5 p-4 rounded-xl">
+                                <p class="text-primary font-bold">Total Esperado en Caja</p>
+                                <p class="text-2xl font-black text-primary" id="totalEsperadoDinamico">${{ total_esperado|floatformat:2 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Cortes anteriores #}
+                {% if ultimos_cortes %}
+                <div class="bg-surface-container-low rounded-xl p-6">
+                    <h4 class="text-sm font-bold text-on-surface uppercase tracking-widest mb-4">Cierres Anteriores Hoy</h4>
+                    <div class="space-y-3">
+                        {% for corte in ultimos_cortes %}
+                        <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 last:border-0">
+                            <div>
+                                <p class="text-xs font-bold text-on-surface">{{ corte.get_turno_display }}</p>
+                                <p class="text-[10px] text-on-surface-variant">{{ corte.hora_cierre|time:"H:i" }} hrs</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold">${{ corte.efectivo_real|floatformat:2 }}</p>
+                                <span class="text-[10px] font-bold {% if corte.diferencia >= 0 %}text-green-600{% else %}text-error{% endif %}">
+                                    {{ corte.diferencia|floatformat:2 }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Actividad de turno #}
+        <section class="mt-10">
+            <h4 class="text-sm font-bold text-tertiary uppercase tracking-widest mb-6">Actividad de Turno</h4>
+            <div class="space-y-2">
+                {% for actividad in actividades %}
+                <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+                    <div class="flex items-center gap-4">
+                        <span class="material-symbols-outlined {% if actividad.tipo == 'entrada' %}text-primary{% elif actividad.tipo == 'retiro' %}text-error{% else %}text-tertiary{% endif %}">
+                            {% if actividad.tipo == 'entrada' %}add_circle{% elif actividad.tipo == 'retiro' %}remove_circle{% else %}check_circle{% endif %}
+                        </span>
+                        <span class="text-sm font-semibold text-on-surface">{{ actividad.descripcion }}</span>
+                    </div>
+                    <span class="text-xs text-on-surface-variant font-medium">{{ actividad.hora|time:"H:i" }} hrs</span>
+                </div>
+                {% empty %}
+                <div class="p-8 text-center text-on-surface-variant">
+                    <p class="text-sm">Sin actividad registrada en este turno.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </form>
+</div>
+
+{% endwith %}
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+const DENOMINACIONES = {
+    'id_billetes_1000': 1000, 'id_billetes_500': 500, 'id_billetes_200': 200,
+    'id_billetes_100': 100,   'id_billetes_50': 50,   'id_billetes_20': 20,
+    'id_monedas_10': 10,      'id_monedas_5': 5,      'id_monedas_2': 2,      'id_monedas_1': 1,
+};
+
+function calcularTotal() {
+    let total = 0;
+    Object.entries(DENOMINACIONES).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        total += (parseInt(el?.value) || 0) * val;
+    });
+    document.getElementById('totalDenominaciones').textContent = '$' + total.toFixed(2);
+
+    const ef = document.getElementById('id_efectivo_real');
+    if (ef && !ef.value && total > 0) {
+        ef.placeholder = '$' + total.toFixed(2) + ' (calculado)';
+    }
+    return total;
+}
+
+function recalcularEsperado() {
+    const fondo = parseFloat(document.getElementById('id_fondo_inicial')?.value) || 0;
+    const efectivoVentas = parseFloat("{{ ventas_efectivo|default:0 }}");
+    const esperado = fondo + efectivoVentas;
+    const el = document.getElementById('totalEsperadoDinamico');
+    if (el) el.textContent = '$' + esperado.toFixed(2);
+    return esperado;
+}
+
+function actualizarDiferencia() {
+    const ef = parseFloat(document.getElementById('id_efectivo_real')?.value) || 0;
+    const esperado = recalcularEsperado();
+    const dif = ef - esperado;
+    const ind = document.getElementById('indicadorDiferencia');
+    const val = document.getElementById('valorDiferencia');
+    
+    if (!ind) return;
+    if (ef === 0) { ind.classList.add('hidden'); return; }
+
+    ind.classList.remove('hidden');
+    if (Math.abs(dif) < 0.01) {
+        ind.className = 'mt-4 px-4 py-2 rounded-xl text-sm font-bold bg-secondary-container text-on-secondary-container';
+        val.textContent = 'Sin diferencia ✅';
+    } else if (dif > 0) {
+        ind.className = 'mt-4 px-4 py-2 rounded-xl text-sm font-bold bg-green-100 text-green-700';
+        val.textContent = `+$${dif.toFixed(2)} (sobrante)`;
+    } else {
+        ind.className = 'mt-4 px-4 py-2 rounded-xl text-sm font-bold bg-error-container text-on-error-container';
+        val.textContent = `$${dif.toFixed(2)} (faltante)`;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    Object.keys(DENOMINACIONES).forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => {
+            calcularTotal();
+            actualizarDiferencia();
+        });
+    });
+    document.getElementById('id_efectivo_real')?.addEventListener('input', actualizarDiferencia);
+    document.getElementById('id_fondo_inicial')?.addEventListener('input', () => {
+        recalcularEsperado();
+        actualizarDiferencia();
+    });
+    calcularTotal();
+    recalcularEsperado();
+});
+
+document.getElementById('formCierre')?.addEventListener('submit', e => {
+    const ef = parseFloat(document.getElementById('id_efectivo_real')?.value) || 0;
+    if (ef === 0) {
+        e.preventDefault();
+        alert('⚠️ Ingresa el monto de efectivo antes de cerrar el turno.');
+    }
+});
+</script>
+{% endblock %}
+
+
+#Revisar este codigo por cualquier error en la interfaz

@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Inventario — Llama y Carbón{% endblock %}
+{% block titulo_pagina %}Inventario de Suministros{% endblock %}
+
+{% block estilos_extra %}
+<style>
+    .material-symbols-outlined {
+        display: inline-block; line-height: 1;
+        text-transform: none; letter-spacing: normal;
+        word-wrap: normal; white-space: nowrap; direction: ltr;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+{% with seccion_activa='inventario' %}
+
+<div class="space-y-8">
+
+    {# ── Mensajes ── #}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
+            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+            {% else %}bg-error-container text-on-error-container{% endif %}">
+            <span class="material-symbols-outlined">
+                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {# ── Encabezado con Saludo Dinámico ── #}
+    <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+            <h2 class="text-3xl font-extrabold text-on-surface font-headline">
+                {{ saludo }}, {{ usuario_nombre }} 👋
+            </h2>
+            <p class="text-on-surface-variant mt-1">
+                {% if sucursal_actual %}
+                    📍 {{ sucursal_actual.nombre }} — 
+                {% endif %}
+                Aquí está el estado actual de tus suministros.
+            </p>
+        </div>
+        <div class="flex gap-3">
+            {# Botón que abre el modal para nuevo producto #}
+            <button onclick="document.getElementById('modalProducto').classList.remove('hidden')"
+                class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-semibold hover:scale-[1.02] transition-transform flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">add</span>
+                Nuevo Producto
+            </button>
+            
+            {# Botón de Exportación Dinámico #}
+            <a href="{% url 'Inventario:exportar' %}{% if categoria_sel %}?categoria={{ categoria_sel }}{% endif %}"
+               class="px-6 py-2.5 bg-surface-container-highest text-on-surface rounded-xl font-semibold hover:scale-[1.02] transition-transform flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">download</span>
+                Exportar CSV
+            </a>
+        </div>
+    </section>
+
+    {# ── Métricas dinámicas ── #}
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+        {# Eficiencia de stock #}
+        <div class="md:col-span-2 p-6 bg-surface-container-lowest rounded-xl flex flex-col justify-between">
+            <div>
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Estado General</p>
+                <h3 class="text-2xl font-bold mt-1 font-headline">Eficiencia de Stock</h3>
+            </div>
+            <div class="mt-8 flex items-end justify-between">
+                <div>
+                    <span class="text-5xl font-extrabold text-primary font-headline">{{ eficiencia }}%</span>
+                    <p class="text-sm text-on-surface-variant font-medium">Nivel óptimo alcanzado</p>
+                </div>
+                <div class="w-32 h-16">
+                    <div class="flex items-end gap-1 h-full">
+                        <div class="w-3 bg-primary-fixed-dim rounded-t-sm" style="height:40%"></div>
+                        <div class="w-3 bg-primary-fixed-dim rounded-t-sm" style="height:60%"></div>
+                        <div class="w-3 bg-primary-fixed-dim rounded-t-sm" style="height:55%"></div>
+                        <div class="w-3 bg-primary-fixed-dim rounded-t-sm" style="height:80%"></div>
+                        <div class="w-3 bg-primary rounded-t-sm" style="height:{{ eficiencia }}%"></div>
+                        <div class="w-3 bg-primary rounded-t-sm" style="height:90%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Productos críticos #}
+        <div class="p-6 bg-surface-container-lowest rounded-xl border-l-4 border-error">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Crítico</p>
+            <div class="mt-4">
+                <span class="text-4xl font-extrabold text-error font-headline">
+                    {{ criticos|stringformat:"02d" }}
+                </span>
+                <p class="text-sm text-on-surface-variant mt-1">Productos agotándose</p>
+            </div>
+            <div class="mt-6">
+                <span class="text-xs px-2 py-1 bg-error-container text-on-error-container rounded-full font-bold">
+                    Acción Requerida
+                </span>
+            </div>
+        </div>
+
+        {# Sucursales activas #}
+        <div class="p-6 bg-surface-container-lowest rounded-xl">
+            <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Sucursales</p>
+            <div class="mt-4">
+                <span class="text-4xl font-extrabold text-tertiary font-headline">
+                    {{ sucursales_count|stringformat:"02d" }}
+                </span>
+                <p class="text-sm text-on-surface-variant mt-1">Puntos de control activos</p>
+            </div>
+            <div class="mt-6 flex -space-x-2">
+                {% for suc in sucursales %}
+                <div class="w-8 h-8 rounded-full border-2 border-surface bg-primary-fixed flex items-center justify-center text-[10px] font-bold">
+                    {{ suc.clave }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# ── Filtros dinámicos ── #}
+    <section class="flex flex-wrap items-center gap-4 py-2">
+        <form method="get" action="{% url 'Inventario:inventario' %}" class="flex flex-wrap items-center gap-4 w-full">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-on-surface-variant">filter_list</span>
+                <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Filtrar por:</span>
+            </div>
+
+            {# Filtro sucursal #}
+            <select name="sucursal"
+                class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary"
+                onchange="this.form.submit()">
+                <option value="">Todas las Sucursales</option>
+                {% for suc in sucursales %}
+                <option value="{{ suc.id }}" {% if sucursal_sel == suc.id|stringformat:"s" %}selected{% endif %}>
+                    {{ suc.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+
+            {# Filtro categoría #}
+            <select name="categoria"
+                class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary"
+                onchange="this.form.submit()">
+                <option value="">Todas las Categorías</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.id }}" {% if categoria_sel == cat.id|stringformat:"s" %}selected{% endif %}>
+                    {{ cat.nombre }}
+                </option>
+                {% endfor %}
+            </select>
+
+            {# Búsqueda #}
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+                <input type="text" name="q" value="{{ busqueda }}"
+                    placeholder="Buscar producto..."
+                    class="pl-9 pr-4 py-2 bg-surface-container-high rounded-xl border-none text-sm focus:ring-2 focus:ring-primary w-48" />
+            </div>
+
+            <a href="{% url 'Inventario:inventario' %}"
+               class="ml-auto text-sm font-bold text-primary hover:underline">
+                Limpiar Filtros
+            </a>
+        </form>
+    </section>
+
+    {# ── Tabla de inventario dinámica ── #}
+    <section class="bg-surface-container-lowest rounded-2xl p-2">
+        <div class="overflow-x-auto">
+            <table class="w-full border-separate border-spacing-y-3">
+                <thead>
+                    <tr class="text-left">
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Producto</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Sucursal</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right">Stock Actual</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Unidad</th>
+                        <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-widest">Estado</th>
+                        <th class="px-6 py-4"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in page_obj %}
+                    <tr class="bg-surface-container-low hover:bg-surface-container-highest transition-all group">
+
+                        {# Nombre + imagen #}
+                        <td class="px-6 py-4 rounded-l-2xl">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg overflow-hidden bg-surface-variant flex-shrink-0">
+                                    <img alt="{{ producto.nombre }}"
+                                         src="{{ producto.imagen_url }}"
+                                         onerror="this.src='https://placehold.co/40x40/f0eded/904800?text=LC'"
+                                         class="w-full h-full object-cover" />
+                                </div>
+                                <div>
+                                    <p class="font-bold text-on-surface">{{ producto.nombre }}</p>
+                                    <p class="text-xs text-on-surface-variant font-medium">
+                                        Categoría: {{ producto.categoria|default:"Sin categoría" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 font-medium text-on-surface">
+                            {{ producto.sucursal|default:"—" }}
+                        </td>
+
+                        {# Stock con color según estado #}
+                        <td class="px-6 py-4 text-right font-bold
+                            {% if producto.estado == 'critico' or producto.estado == 'agotado' %}text-error
+                            {% elif producto.estado == 'bajo' %}text-tertiary
+                            {% else %}text-primary{% endif %}">
+                            {{ producto.stock }}
+                        </td>
+
+                        <td class="px-6 py-4 text-on-surface-variant">{{ producto.unidad }}</td>
+
+                        {# Badge de estado dinámico #}
+                        <td class="px-6 py-4">
+                            {% if producto.estado == 'critico' %}
+                                <span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">warning</span>
+                                    Crítico
+                                </span>
+                            {% elif producto.estado == 'agotado' %}
+                                <span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">remove_circle</span>
+                                    Agotado
+                                </span>
+                            {% elif producto.estado == 'bajo' %}
+                                <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">trending_down</span>
+                                    Bajo
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Óptimo
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-6 py-4 rounded-r-2xl text-right">
+                            <button class="p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-on-surface-variant text-sm">
+                            <span class="material-symbols-outlined text-4xl block mb-2">inventory_2</span>
+                            No hay productos que coincidan con los filtros.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {# ── Paginación dinámica ── #}
+    <footer class="flex items-center justify-between py-6">
+        <p class="text-sm text-on-surface-variant">
+            Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }}
+            de {{ page_obj.paginator.count }} productos
+        </p>
+        <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&sucursal={{ sucursal_sel }}&categoria={{ categoria_sel }}&q={{ busqueda }}"
+               class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-primary text-on-primary font-bold">
+                    {{ num }}
+                </span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}&sucursal={{ sucursal_sel }}&categoria={{ categoria_sel }}&q={{ busqueda }}"
+                   class="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-surface-container-high font-bold transition-colors">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&sucursal={{ sucursal_sel }}&categoria={{ categoria_sel }}&q={{ busqueda }}"
+               class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+            {% endif %}
+        </div>
+    </footer>
+</div>
+
+{# ── Modal: Nuevo Producto ── #}
+<div id="modalProducto" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold font-headline text-on-surface">Nuevo Producto</h3>
+            <button onclick="document.getElementById('modalProducto').classList.add('hidden')"
+                class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+
+        <form method="post" action="{% url 'Inventario:inventario' %}" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-primary">Nombre del Producto</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                    <p class="text-error text-xs">{{ form.nombre.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-primary">Categoría</label>
+                    {{ form.categoria }}
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-primary">Sucursal</label>
+                    {{ form.sucursal }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-primary">Stock Actual</label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <p class="text-error text-xs">{{ form.stock.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-primary">Unidad</label>
+                    {{ form.unidad }}
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-primary">Stock Mínimo</label>
+                {{ form.stock_minimo }}
+            </div>
+
+            <div class="pt-4 border-t border-outline-variant/10 flex items-center justify-between">
+                <button type="button"
+                    onclick="document.getElementById('modalProducto').classList.add('hidden')"
+                    class="px-6 py-3 text-on-surface-variant font-bold hover:bg-surface-container-high rounded-xl transition-all">
+                    Cancelar
+                </button>
+                <button type="submit"
+                    class="bg-primary text-on-primary px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-all">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    Guardar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# Si hay errores de form, reabre el modal automáticamente #}
+{% if form.errors %}
+<script>
+    document.getElementById('modalProducto').classList.remove('hidden');
+</script>
+{% endif %}
+
+{% endwith %}
+{% endblock %}
+
+
+
+

@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="light" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Llama y Carbón - Iniciar Sesión</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Work+Sans:wght@300..700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#dcd9d9",
+                        "secondary-container": "#cfe2f9",
+                        "on-tertiary-container": "#fffbff",
+                        "inverse-primary": "#ffb783",
+                        "surface-container-highest": "#e5e2e1",
+                        "secondary-fixed": "#d1e4fb",
+                        "on-secondary": "#ffffff",
+                        "surface": "#fcf9f8",
+                        "on-tertiary-fixed": "#2b160f",
+                        "on-error": "#ffffff",
+                        "primary-fixed": "#ffdcc5",
+                        "primary-container": "#b55d00",
+                        "outline-variant": "#e0c0b2",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary-fixed-dim": "#b5c8df",
+                        "on-error-container": "#93000a",
+                        "surface-variant": "#e5e2e1",
+                        "on-surface-variant": "#594238",
+                        "on-secondary-fixed-variant": "#36485b",
+                        "secondary": "#4e6073",
+                        "surface-container": "#f0eded",
+                        "outline": "#8c7166",
+                        "inverse-on-surface": "#f3f0ef",
+                        "on-primary-fixed-variant": "#713700",
+                        "tertiary-fixed-dim": "#e4beb2",
+                        "surface-container-low": "#f6f3f2",
+                        "surface-bright": "#fcf9f8",
+                        "on-secondary-fixed": "#091d2e",
+                        "tertiary": "#72554b",
+                        "primary-fixed-dim": "#ffb783",
+                        "on-primary-fixed": "#301400",
+                        "on-primary-container": "#fffbff",
+                        "on-background": "#1b1c1c",
+                        "on-tertiary": "#ffffff",
+                        "primary": "#904800",
+                        "on-secondary-container": "#526478",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-surface": "#1b1c1c",
+                        "inverse-surface": "#303030",
+                        "background": "#fcf9f8",
+                        "surface-container-high": "#eae7e7",
+                        "on-tertiary-fixed-variant": "#5b4137",
+                        "tertiary-fixed": "#ffdbce",
+                        "tertiary-container": "#8d6e63",
+                        "surface-tint": "#944a00"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "display": ["Manrope"],
+                        "body": ["Work Sans"],
+                        "label": ["Work Sans"]
+                    }
+                },
+            }
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .rustic-gradient {
+            background: linear-gradient(135deg, #1b1c1c 0%, #301400 100%);
+        }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+
+<body class="bg-surface font-body text-on-surface min-h-screen flex items-center justify-center p-4">
+
+    <!-- Auth Background Layer -->
+    <div class="fixed inset-0 z-0">
+        <img class="w-full h-full object-cover opacity-20"
+            alt="Carbón encendido en parrilla rústica"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCt08Y88Zt461JRjRDw1GIgbtPzgSwrwRa8M11KnlhygsxxDRVHWDwFzOlzsgJpm-0AtcF-b8hRlg8JvbE-kU-Uwryv2AjrifRoCBjDI5cHMEMl0gI4_LWuv6-npo9y5klXAbYnWJ6U7IYpL9BoRf1wSdlLmJ8vBDPVTG0t1OjdJ52ECsqM6-iyRA0kVb9THnpAFuH4NDL8_x5TG0T7HTxcBSoTv2qoxClBy_sYLPAcBWd025chRk3Sqa7x7JHlDZC_jWnol9ua495q" />
+        <div class="absolute inset-0 bg-gradient-to-tr from-surface via-surface/90 to-transparent"></div>
+    </div>
+
+    <!-- Main Login Container -->
+    <main class="relative z-10 w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 shadow-2xl rounded-xl overflow-hidden bg-surface-container-lowest">
+
+        <!-- Left Side: Visual Narrative -->
+        <div class="hidden md:flex flex-col justify-between p-12 rustic-gradient text-on-primary">
+            <div>
+                <span class="font-headline font-black text-2xl tracking-widest text-primary-fixed">LLAMA Y CARBÓN</span>
+                <div class="mt-2 w-12 h-1 bg-primary-container"></div>
+            </div>
+            <div class="space-y-6">
+                <h1 class="font-display text-4xl font-extrabold tracking-tight leading-tight">
+                    Gestión Editorial con Alma de Brasa.
+                </h1>
+                <p class="font-body text-lg text-primary-fixed/80 max-w-xs leading-relaxed">
+                    Precisión artesanal en cada detalle de su operación gastronómica.
+                </p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-surface">restaurant_menu</span>
+                </div>
+                <span class="font-label text-sm uppercase tracking-widest opacity-60">Est. 2024</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Interaction Canvas -->
+        <div class="p-8 md:p-16 flex flex-col justify-center">
+            <div class="mb-10 md:hidden text-center">
+                <span class="font-headline font-black text-xl tracking-widest text-primary uppercase">Llama y Carbón</span>
+            </div>
+
+            <header class="mb-8">
+                <h2 class="font-display text-headline-md font-bold text-on-surface mb-2">Bienvenido de nuevo</h2>
+                <p class="text-on-surface-variant font-body">Ingrese sus credenciales para acceder al panel de gestión.</p>
+            </header>
+
+            {# DJANGO: Bloque de mensajes de error #}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="mb-6 px-4 py-3 rounded-lg bg-error-container text-error font-body text-sm flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">error</span>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {# DJANGO: method="post" y action apunta a la URL del login #}
+            <form method="post" action="{% url 'login' %}" class="space-y-6">
+                {% csrf_token %} {# DJANGO: Token de seguridad obligatorio #}
+
+                <!-- User Field -->
+                <div class="space-y-2">
+                    <label class="block font-label text-sm font-semibold text-primary" for="username">
+                        Usuario o Correo Electrónico
+                    </label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        {# DJANGO: name="username" coincide con request.POST.get('username') en views.py #}
+                        <input
+                            class="w-full pl-12 pr-4 py-4 bg-surface-container-high rounded-lg focus:bg-surface-container-lowest focus:ring-0 focus:border-b-2 border-transparent border-b-primary transition-all duration-200 text-on-surface font-body outline-none"
+                            id="username"
+                            name="username"
+                            placeholder="admin@llamaycarbon.com"
+                            type="text"
+                            value="{{ username_input|default:'' }}" {# DJANGO: Conserva el usuario escrito si hay error #}
+                            autocomplete="username"
+                        />
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <label class="block font-label text-sm font-semibold text-primary" for="password">Contraseña</label>
+                        <a class="text-xs font-semibold text-tertiary hover:text-primary transition-colors" href="#">¿Olvidó su contraseña?</a>
+                    </div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-on-surface-variant">
+                            <span class="material-symbols-outlined">lock</span>
+                        </div>
+                        {# DJANGO: name="password" coincide con request.POST.get('password') en views.py #}
+                        <input
+                            class="w-full pl-12 pr-12 py-4 bg-surface-container-high rounded-lg focus:bg-surface-container-lowest focus:ring-0 focus:border-b-2 border-transparent border-b-primary transition-all duration-200 text-on-surface font-body outline-none"
+                            id="password"
+                            name="password"
+                            placeholder="••••••••"
+                            type="password"
+                            autocomplete="current-password"
+                        />
+                        <button
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-on-surface-variant hover:text-primary"
+                            type="button"
+                            onclick="togglePassword()"
+                        >
+                            <span class="material-symbols-outlined" id="toggle-icon">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me -->
+                <div class="flex items-center gap-3">
+                    <input
+                        class="w-5 h-5 rounded-sm border-outline-variant text-primary focus:ring-primary-container bg-surface-container-high"
+                        id="remember"
+                        name="remember"
+                        type="checkbox"
+                    />
+                    <label class="text-sm font-body text-on-surface-variant" for="remember">Recordar mi sesión</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    class="w-full py-5 bg-primary text-on-primary font-headline font-bold rounded-xl text-lg hover:bg-primary-container transition-all transform active:scale-95 shadow-lg shadow-primary/10 flex items-center justify-center gap-2"
+                    type="submit"
+                >
+                    <span>Entrar</span>
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+            </form>
+
+            <!-- Footer Notes -->
+            <footer class="mt-12 pt-8 border-t border-outline-variant/20">
+                <div class="flex flex-col sm:flex-row justify-between gap-4 text-xs font-label text-on-surface-variant opacity-70">
+                    <p>© 2024 Llama y Carbón. Todos los derechos reservados.</p>
+                    <div class="flex gap-4">
+                        <a class="hover:text-primary transition-colors" href="#">Privacidad</a>
+                        <a class="hover:text-primary transition-colors" href="#">Soporte</a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <!-- Decorative Smoked Glass Element -->
+    <div class="fixed bottom-8 right-8 z-20 pointer-events-none hidden lg:block">
+        <div class="p-6 glass-panel rounded-full border border-surface-container-highest shadow-xl flex items-center gap-4">
+            <div class="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+            </div>
+            <div>
+                <p class="font-headline font-bold text-sm leading-none">Sistema Activo</p>
+                <p class="font-body text-xs text-on-surface-variant">Servidor Principal: Lima, PE</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle visibilidad de contraseña
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.getElementById('toggle-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        }
+    </script>
+</body>
+</html>
