@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block titulo %}Calendario de Turnos{% endblock %}
+
+{% block contenido %}
+<style>
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+</style>
+
+<div class="max-w-7xl mx-auto space-y-6">
+    
+    <div class="flex items-center justify-between">
+        <h1 class="text-3xl font-black text-on-surface">Calendario de Turnos</h1>
+        <button onclick="abrirModal()"
+                class="px-6 py-3 bg-primary text-on-primary rounded-xl font-bold hover:bg-primary/90">
+            + Programar Turno
+        </button>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-6">
+            <button onclick="mesAnterior()" class="p-2 hover:bg-surface-container-high rounded-lg text-on-surface">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <h2 class="text-xl font-bold text-on-surface" id="mes-actual">Mayo 2026</h2>
+            <button onclick="mesSiguiente()" class="p-2 hover:bg-surface-container-high rounded-lg text-on-surface">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-7 gap-2 text-center font-bold text-sm text-outline mb-2">
+            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-2" id="calendario-grid">
+            </div>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl p-6">
+        <h3 class="text-lg font-bold mb-4 text-on-surface">Turnos Programados</h3>
+        <div id="turnos-dia" class="space-y-3">
+            <p class="text-sm text-outline">Selecciona un día del calendario para ver o programar turnos.</p>
+        </div>
+    </div>
+</div>
+
+<div id="modalTurno" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <h2 class="text-xl font-bold mb-4 text-black">Programar Turno</h2>
+        <form method="post" action="{% url 'Personal:guardar_turno' %}">
+            {% csrf_token %}
+            
+            <div class="space-y-4 text-black">
+                <div>
+                    <label class="block font-semibold mb-1">Tipo de Turno</label>
+                    <select name="tipo_turno" id="selectTurno" required
+                            class="w-full px-3 py-2 border rounded-lg bg-white text-black">
+                        <option value="">Seleccionar...</option>
+                        <option value="MANANA">Turno Mañana</option>
+                        <option value="TARDE">Turno Tarde</option>
+                        <option value="MEDIO">Medio Tiempo</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block font-semibold mb-1">Fecha</label>
+                    <input type="date" name="fecha" id="inputFechaModal" required 
+                           class="w-full px-3 py-2 border rounded-lg bg-white text-black"/>
+                </div>
+                
+                <div>
+                    <label class="block font-semibold mb-1">Hora Inicio</label>
+                    <input type="time" name="hora_inicio" id="horaInicio" required 
+                           class="w-full px-3 py-2 border rounded-lg bg-white text-black"/>
+                </div>
+                
+                <div>
+                    <label class="block font-semibold mb-1">Hora Fin</label>
+                    <input type="time" name="hora_fin" id="horaFin" required 
+                           class="w-full px-3 py-2 border rounded-lg bg-white text-black"/>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button type="submit" 
+                        class="flex-1 bg-primary text-on-primary py-2 rounded-lg font-bold hover:bg-primary/90">
+                    Guardar Turno
+                </button>
+                <button type="button" onclick="cerrarModal()" 
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// --- LÓGICA DE AUTOMATIZACIÓN DE LA CAPTURA ---
+document.getElementById("selectTurno").addEventListener("change", function() {
+    const valor = this.value;
+    const inicio = document.getElementById("horaInicio");
+    const fin = document.getElementById("horaFin");
+
+    if (valor === "MANANA") {
+        inicio.value = "08:00";
+        fin.value = "13:00";
+        inicio.readOnly = true;
+        fin.readOnly = true;
+        inicio.style.backgroundColor = "#E5E7EB";
+        fin.style.backgroundColor = "#E5E7EB";
+    } else if (valor === "TARDE") {
+        inicio.value = "13:00";
+        fin.value = "20:00";
+        inicio.readOnly = true;
+        fin.readOnly = true;
+        inicio.style.backgroundColor = "#E5E7EB";
+        fin.style.backgroundColor = "#E5E7EB";
+    } else if (valor === "MEDIO") {
+        inicio.value = "";
+        fin.value = "";
+        inicio.readOnly = false;
+        fin.readOnly = false;
+        inicio.style.backgroundColor = "white";
+        fin.style.backgroundColor = "white";
+    }
+});
+
+function abrirModal() {
+    document.getElementById("modalTurno").style.display = "flex";
+}
+
+function cerrarModal() {
+    document.getElementById("modalTurno").style.display = "none";
+}
+
+// --- LÓGICA DINÁMICA DE GENERACIÓN DEL CALENDARIO ---
+let fechaActual = new Date();
+
+const nombresMeses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
+
+function renderizarCalendario() {
+    const año = fechaActual.getFullYear();
+    const mes = fechaActual.getMonth();
+    
+    // Actualizar título del encabezado (Ej: "Mayo 2026")
+    document.getElementById("mes-actual").innerText = `${nombresMeses[mes]} ${año}`;
+    
+    const primerDiaIndex = new Date(año, mes, 1).getDay();
+    const ultimoDia = new Date(año, mes + 1, 0).getDate();
+    
+    const grid = document.getElementById("calendario-grid");
+    grid.innerHTML = "";
+    
+    // Espacios vacíos para los días del mes anterior
+    for (let i = 0; i < primerDiaIndex; i++) {
+        const celdaVacia = document.createElement("div");
+        grid.appendChild(celdaVacia);
+    }
+    
+    // Generar los días del mes actual
+    const hoy = new Date();
+    for (let dia = 1; dia <= ultimoDia; dia++) {
+        const botonDia = document.createElement("button");
+        botonDia.innerText = dia;
+        
+        // Estilos base de Tailwind para cada día
+        botonDia.className = "p-4 rounded-xl font-semibold transition-all hover:bg-primary/20 text-on-surface bg-surface-container-high flex flex-col items-center justify-between min-h-[64px]";
+        
+        // Resaltar el día de hoy si coincide con el mes y año actuales
+        if (dia === hoy.getDate() && mes === hoy.getMonth() && año === hoy.getFullYear()) {
+            botonDia.classList.add("bg-primary", "text-on-primary", "hover:bg-primary/90");
+        }
+        
+        // Evento al hacer clic en un día concreto
+        botonDia.onclick = () => seleccionarDia(año, mes, dia);
+        
+        grid.appendChild(botonDia);
+    }
+}
+
+function seleccionarDia(año, mes, dia) {
+    // Formatear la fecha a formato estándar YYYY-MM-DD
+    const mesFormateado = String(mes + 1).padStart(2, '0');
+    const diaFormateado = String(dia).padStart(2, '0');
+    const fechaCompleta = `${año}-${mesFormateado}-${diaFormateado}`;
+    
+    // Setea automáticamente la fecha clickeada en el input del modal
+    document.getElementById("inputFechaModal").value = fechaCompleta;
+    
+    // Actualizar el panel inferior de turnos con la fecha seleccionada
+    const listaTurnos = document.getElementById("turnos-dia");
+    listaTurnos.innerHTML = `
+        <div class="p-4 bg-surface-container-high rounded-xl flex justify-between items-center">
+            <div>
+                <p class="font-bold text-on-surface">Día seleccionado: ${diaFormateado}/${mesFormateado}/${año}</p>
+                <p class="text-sm text-outline">No hay turnos cargados dinámicamente en este ejemplo.</p>
+            </div>
+            <button onclick="abrirModal()" class="text-sm font-bold text-primary hover:underline">
+                + Agregar turno aquí
+            </button>
+        </div>
+    `;
+}
+
+function mesAnterior() {
+    fechaActual.setMonth(fechaActual.getMonth() - 1);
+    renderizarCalendario();
+}
+
+function mesSiguiente() {
+    fechaActual.setMonth(fechaActual.getMonth() + 1);
+    renderizarCalendario();
+}
+
+// Inicializar el calendario cuando cargue la página
+document.addEventListener("DOMContentLoaded", renderizarCalendario);
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+

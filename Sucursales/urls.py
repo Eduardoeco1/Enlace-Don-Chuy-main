@@ -4,6 +4,6 @@ from . import views
 app_name = 'Sucursales'
 
 urlpatterns = [
-    path('cambiar-sucursal/', views.cambiar_sucursal, name='cambiar_sucursal'),
+    # CORRECCIÓN: Sincronizado el name con el fetch AJAX de base.html (Línea 392)
+    path('cambiar-sucursal/', views.cambiar_sucursal_global, name='cambiar_sucursal_global'),
 ]
-

@@ -1,12 +1,13 @@
+from decimal import Decimal
+from datetime import datetime
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.db.models import Sum, Q
-from decimal import Decimal
-from datetime import datetime
+from django.db.models import Sum
 
-from .models import CierreCaja, ActividadTurno
+from .models import CierreCaja
 from .forms import CierreCajaForm
 from Sucursales.permisos import gerente_o_superior, get_sucursal_contexto
 
@@ -14,39 +15,50 @@ from Sucursales.permisos import gerente_o_superior, get_sucursal_contexto
 def _calcular_ventas_dia(sucursal=None):
     """
     Calcula las ventas reales del día desde el modelo Pedido.
-    Separa por método de pago si está disponible,
-    de lo contrario retorna el total general.
+    Agrupa y suma dinámicamente según el método de pago real ('tipo').
     """
     from Ventas.models import Pedido
 
-    ahora      = timezone.now()
-    inicio_hoy = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
+    # Usar hora local de la sucursal para evitar desfase de fecha con UTC
+    hoy = timezone.now().date()
 
+    # Obtener pedidos del día con estado procesado
     pedidos = Pedido.objects.filter(
-        creado_en__gte = inicio_hoy,
-        estado         = 'procesado',
+        creado_en__date=hoy,
+        estado__in=['procesado', 'procesada', 'COMPLETADA', 'completado']
     )
+    
+    # ── FILTRO DINÁMICO ──
     if sucursal:
         pedidos = pedidos.filter(sucursal=sucursal)
 
-    # Totales por método de pago
-    # Si tu modelo Pedido tiene campo metodo_pago, filtra así:
-    # ventas_efectivo = pedidos.filter(metodo_pago='efectivo').aggregate(t=Sum('total'))['t'] or 0
-    # ventas_tarjeta  = pedidos.filter(metodo_pago='tarjeta').aggregate(t=Sum('total'))['t'] or 0
-    # ventas_delivery = pedidos.filter(metodo_pago='delivery').aggregate(t=Sum('total'))['t'] or 0
-
-    # Por ahora distribuimos el total proporcionalmente
-    total_dia = pedidos.aggregate(t=Sum('total'))['t'] or Decimal('0')
+    # Calcular totales generales básicos
+    total_dia = pedidos.aggregate(t=Sum('total'))['t'] or Decimal('0.00')
     num_pedidos = pedidos.count()
 
-    # Distribución estimada (ajusta según tu lógica de negocio)
-    ventas_efectivo = (total_dia * Decimal('0.55')).quantize(Decimal('0.01'))
-    ventas_tarjeta  = (total_dia * Decimal('0.35')).quantize(Decimal('0.01'))
-    ventas_delivery = (total_dia - ventas_efectivo - ventas_tarjeta).quantize(Decimal('0.01'))
+    # Inicializar los acumuladores de métodos de pago en 0
+    ventas_efectivo = Decimal('0.00')
+    ventas_tarjeta = Decimal('0.00')
+    ventas_delivery = Decimal('0.00')
+
+    # CALCULAR MÉTODOS DE PAGO CORRECTAMENTE (Usa tipo de Pedido)
+    metodos_pago = pedidos.values('tipo').annotate(total=Sum('total'))
+
+    # Asignar valores reales iterando sobre la agrupación de la BD
+    for metodo in metodos_pago:
+        nombre_metodo = str(metodo['tipo']).lower().strip() if metodo['tipo'] else ''
+        monto = metodo['total'] or Decimal('0.00')
+
+        if nombre_metodo == 'efectivo':
+            ventas_efectivo = monto
+        elif nombre_metodo == 'tarjeta':
+            ventas_tarjeta = monto
+        elif nombre_metodo in ['app', 'delivery', 'transferencia', 'plataforma']:
+            ventas_delivery += monto
 
     return {
         'ventas_efectivo': ventas_efectivo,
-        'ventas_tarjeta':  ventas_tarjeta,
+        'ventas_tarjeta':   ventas_tarjeta,
         'ventas_delivery': ventas_delivery,
         'total_ventas':    total_dia,
         'num_pedidos':     num_pedidos,
@@ -67,12 +79,13 @@ def _calcular_actividades_turno(sucursal=None):
 
     # Entradas de mercancía del día
     entradas = EntradaInsumo.objects.filter(creado_en__gte=inicio_hoy)
+    # ── FILTRO DINÁMICO ──
     if sucursal:
         entradas = entradas.filter(sucursal=sucursal)
 
     for e in entradas.order_by('creado_en')[:5]:
         actividades.append({
-            'tipo':        'entrada',
+            'type':        'entrada',
             'descripcion': f'Entrada de Mercancía: {e.producto} — {e.cantidad} {e.unidad}',
             'hora':        e.creado_en,
         })
@@ -80,39 +93,52 @@ def _calcular_actividades_turno(sucursal=None):
     # Ventas procesadas como referencia de actividad
     pedidos = Pedido.objects.filter(
         creado_en__gte = inicio_hoy,
-        estado         = 'procesado',
+        estado__in     = ['procesado', 'procesada', 'COMPLETADA', 'completado'],
     )
+    # ── FILTRO DINÁMICO ──
     if sucursal:
         pedidos = pedidos.filter(sucursal=sucursal)
 
     total_ventas_dia = pedidos.aggregate(t=Sum('total'))['t'] or Decimal('0')
     if total_ventas_dia > 0:
         actividades.append({
-            'tipo':        'validacion',
+            'type':        'validacion',
             'descripcion': f'Ventas del día registradas: ${total_ventas_dia:,.2f} en {pedidos.count()} pedidos',
             'hora':        ahora,
         })
 
-    # Cortes anteriores del día (si ya hubo alguno)
+    # Cortes anteriores del día (Usa fecha nativa de CierreCaja)
     cortes_hoy = CierreCaja.objects.filter(fecha=ahora.date())
+    # ── FILTRO DINÁMICO ──
     if sucursal:
         cortes_hoy = cortes_hoy.filter(sucursal=sucursal)
 
     for c in cortes_hoy:
+        # Corrección del objeto combinado de tiempo para el ordenamiento analítico
+        hora_actividad = ahora
+        if c.fecha and c.hora_cierre:
+            try:
+                hora_actividad = datetime.combine(c.fecha, c.hora_cierre)
+                if timezone.is_naive(hora_actividad):
+                    hora_actividad = timezone.make_aware(hora_actividad)
+            except Exception:
+                hora_actividad = ahora
+
         actividades.append({
-            'tipo':        'retiro',
+            'type':        'retiro',
             'descripcion': f'Cierre de turno previo: {c.get_turno_display()} — ${c.efectivo_real:,.2f}',
-            'hora':        datetime.combine(c.fecha, c.hora_cierre),
+            'hora':        hora_actividad,
         })
 
-    # Ordena por hora
-    actividades.sort(key=lambda x: x['hora'] if hasattr(x['hora'], 'hour') else x['hora'])
+    # Ordena por hora de forma segura comprobando la existencia de atributos nativos
+    actividades.sort(key=lambda x: x['hora'] if x['hora'] else ahora)
     return actividades
 
 
 @login_required(login_url='/')
 @gerente_o_superior
 def cierre_caja_view(request):
+    # ── INTEGRACIÓN DEL SELECTOR GLOBAL OFICIAL ──
     sucursal      = get_sucursal_contexto(request)
     ahora         = timezone.now()
     fondo_inicial = Decimal('200.00')
@@ -129,8 +155,9 @@ def cierre_caja_view(request):
     # ── Actividades del turno ─────────────────────────
     actividades = _calcular_actividades_turno(sucursal)
 
-    # ── Últimos cortes (historial) ────────────────────
+    # ── Últimos cortes (historial con campos reales) ──
     ultimos_cortes = CierreCaja.objects.select_related('usuario', 'sucursal').order_by('-fecha', '-hora_cierre')
+    # ── FILTRO DINÁMICO ──
     if sucursal:
         ultimos_cortes = ultimos_cortes.filter(sucursal=sucursal)
     ultimos_cortes = ultimos_cortes[:3]
@@ -146,6 +173,11 @@ def cierre_caja_view(request):
 
     # ── Procesar el formulario ────────────────────────
     if request.method == 'POST':
+        # Bloqueo adicional de seguridad: No se puede cerrar caja en "Todas las Sucursales"
+        if not sucursal:
+            messages.warning(request, "⚠️ Para realizar un cierre de caja, debes seleccionar una sucursal específica en el menú superior.")
+            return redirect('CierreCaja:cierre')
+            
         form = CierreCajaForm(request.POST)
         if form.is_valid():
             cierre                 = form.save(commit=False)
@@ -183,9 +215,7 @@ def cierre_caja_view(request):
         })
 
     context = {
-        # Formulario
         'form':             form,
-        # Datos dinámicos de ventas
         'ventas_efectivo':  ventas_efectivo,
         'ventas_tarjeta':   ventas_tarjeta,
         'ventas_delivery':  ventas_delivery,
@@ -193,19 +223,17 @@ def cierre_caja_view(request):
         'num_pedidos':      num_pedidos,
         'fondo_inicial':    fondo_inicial,
         'total_esperado':   total_esperado,
-        # Turno detectado
         'turno_auto':       turno_auto,
-        # Actividades
         'actividades':      actividades,
-        # Historial
         'ultimos_cortes':   ultimos_cortes,
-        # Meta
         'fecha_actual':     ahora.strftime('%d %b, %Y'),
         'hora_actual':      ahora.strftime('%H:%M'),
-        'sucursal_actual':  sucursal,
+        # Ya no pasamos 'sucursal_actual' porque context_processor.py lo maneja globalmente
         'usuario_nombre':   request.user.get_full_name() or request.user.username,
     }
     return render(request, 'CierreCaja/CierreCaja.html', context)
+
+
 
 
 

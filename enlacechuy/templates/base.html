@@ -7,7 +7,10 @@
     <title>{% block titulo %}Llama y Carbón{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    {# ── HOJA DE ESTILOS DE GOOGLE FONTS CORREGIDA PARA MATERIAL SYMBOLS OUTLINED ── #}
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap" rel="stylesheet" />
+    
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -41,14 +44,19 @@
 
 <body class="bg-surface text-on-surface min-h-screen flex">
 
-    <aside class="hidden md:flex flex-col h-screen w-64 bg-[#f6f3f2] font-['Manrope'] font-semibold text-sm p-4 gap-2 sticky top-0">
-        <div class="mb-8 px-2 py-4">
+  <aside class="hidden md:flex flex-col h-screen w-64 bg-[#f6f3f2] font-['Manrope'] sticky top-0">
+    
+    <div class="p-4 border-b border-stone-200">
+        <div class="px-2 py-2">
             <h2 class="text-lg font-black text-orange-900 tracking-tighter">Llama y Carbón</h2>
-            <p class="text-xs text-stone-500 font-medium">Libro Mayor Artesanal</p>
+            <p class="text-xs text-stone-500 font-medium">Sistema POS</p>
         </div>
+    </div>
 
-        <nav class="flex flex-col gap-1 flex-1">
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+    <nav class="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-stone-300 scrollbar-track-transparent hover:scrollbar-thumb-stone-400">
+        <div class="flex flex-col gap-1">
+            
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'tablero' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'PanelControl:panel' %}">
@@ -56,7 +64,7 @@
                 <span>Panel de Control</span>
             </a>
 
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'ventas' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'Ventas:Ventas' %}">
@@ -64,7 +72,7 @@
                 <span>Punto de Venta</span>
             </a>
 
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'inventario' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'Inventario:inventario' %}">
@@ -72,7 +80,7 @@
                 <span>Inventario</span>
             </a>
 
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'entrada' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'EntradaMercancia:entrada' %}">
@@ -80,8 +88,30 @@
                 <span>Entrada de Mercancía</span>
             </a>
 
+            {% if not es_duena %}
+            <div class="my-2 border-t border-stone-300/30"></div>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
+                {% if seccion_activa == 'asistencia' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Personal:asistencia' %}">
+                <span class="material-symbols-outlined">fingerprint</span>
+                <span>Mi Asistencia</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
+                {% if seccion_activa == 'justificantes' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Personal:justificantes' %}">
+                <span class="material-symbols-outlined">description</span>
+                <span>Mis Justificantes</span>
+            </a>
+            {% endif %}
+
             {% if es_gerente or es_duena %}
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            <div class="my-2 border-t border-stone-300/30"></div>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'caja' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'CierreCaja:cierre' %}">
@@ -89,7 +119,7 @@
                 <span>Cierre de Caja</span>
             </a>
 
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'personal' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'Personal:personal' %}">
@@ -97,7 +127,23 @@
                 <span>Personal</span>
             </a>
 
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
+                {% if seccion_activa == 'asistencias' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Personal:asistencias' %}">
+                <span class="material-symbols-outlined">table_chart</span>
+                <span>Control de Asistencias</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
+                {% if seccion_activa == 'control_justificantes' %}bg-white text-orange-900 shadow-sm
+                {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
+                href="{% url 'Personal:control_justificantes' %}">
+                <span class="material-symbols-outlined">rate_review</span>
+                <span>Gestión de Justificantes</span>
+            </a>
+
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'reportes' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
                 href="{% url 'Reportes:reporte' %}">
@@ -105,62 +151,73 @@
                 <span>Reportes</span>
             </a>
             {% endif %}
-          
-             {# ── Asistencia (todos los roles) ── #}
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
-            {% if seccion_activa == 'asistencia' %}bg-white text-orange-900 shadow-sm
-            {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
-            href="{% url 'Personal:asistencia' %}">
-            <span class="material-symbols-outlined">fingerprint</span>
-            <span>Mi Asistencia</span>
 
-            </a>
+        </div>
+    </nav>
 
-            {# ── Tabla de asistencias (solo Gerente y Dueña) ── #}
-            {% if es_gerente %}
-            <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
-            {% if seccion_activa == 'asistencias' %}bg-white text-orange-900 shadow-sm
-            {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
-            href="{% url 'Personal:asistencias' %}">
-            <span class="material-symbols-outlined">table_chart</span>
-            <span>Control de Asistencias</span>
-
-            </a>
-            {% endif %}
-
-        </nav>
-
-        <div class="mt-auto space-y-2">
-            <a href="{% url 'Perfil:perfil' %}"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all
-                   {% if seccion_activa == 'perfil' %}bg-white text-orange-900 shadow-sm
-                   {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}">
-                <span class="material-symbols-outlined">account_circle</span>
-                <span>Mi Perfil</span>
-            </a>
-
-            <form method="post" action="{% url 'logout' %}">
-                {% csrf_token %}
-                <button type="submit"
-                    class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-stone-600 hover:text-error hover:bg-error-container/20 text-left">
-                    <span class="material-symbols-outlined">logout</span>
-                    <span>Cerrar Sesión</span>
-                </button>
-            </form>
-
-            <div class="p-3 bg-surface-container rounded-xl flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary flex-shrink-0">
-                    <span class="material-symbols-outlined text-sm">person</span>
-                </div>
-                <div class="overflow-hidden">
-                    <p class="text-xs font-bold truncate">{{ usuario_nombre|default:request.user.username }}</p>
-                    <p class="text-[10px] text-on-surface-variant truncate">
-                        {% if es_duena %}Dueña{% elif es_gerente %}Gerente{% else %}Empleado{% endif %}
-                    </p>
-                </div>
+    <div class="p-4 border-t border-stone-200 bg-[#f6f3f2]">
+        <div class="flex items-center gap-3 mb-3 px-2">
+            <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {% if request.user.foto_perfil %}
+                <img src="{{ request.user.foto_perfil.url }}?t={% now 'U' %}" 
+                     class="w-full h-full object-cover"
+                     alt="Foto de perfil"
+                     loading="lazy">
+                {% else %}
+                <span class="material-symbols-outlined text-orange-600">person</span>
+                {% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-stone-900 truncate">{{ usuario_nombre|default:"Usuario" }}</p>
+                <p class="text-xs text-stone-500 truncate">
+                    {% if es_duena %}Dueña
+                    {% elif es_gerente %}Gerente
+                    {% else %}Empleado{% endif %}
+                    {% if sucursal_actual %} • {{ sucursal_actual.nombre }}{% endif %}
+                </p>
             </div>
         </div>
-    </aside>
+        
+        <a href="{% url 'Perfil:perfil' %}" 
+           class="flex items-center gap-2 px-4 py-2 text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7] rounded-xl transition-all text-sm font-semibold">
+            <span class="material-symbols-outlined text-lg">settings</span>
+            <span>Mi Perfil</span>
+        </a>
+        
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" 
+                    class="w-full flex items-center gap-2 px-4 py-2 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all text-sm font-semibold mt-1">
+                <span class="material-symbols-outlined text-lg">logout</span>
+                <span>Cerrar Sesión</span>
+            </button>
+        </form>
+    </div>
+</aside>
+
+<style>
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #d6d3d1;
+    border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: #a8a29e;
+}
+
+.scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #d6d3d1 transparent;
+}
+</style>  
 
     <div class="flex-1 flex flex-col min-w-0">
 
@@ -171,34 +228,47 @@
                 </h1>
             </div>
 
-            <div class="flex items-center gap-2 relative">
+            <div class="flex items-center gap-4 relative">
                 
-                {% if es_duena and todas_sucursales %}
-                <div class="flex items-center gap-2 mr-4">
-                    <span class="material-symbols-outlined text-primary text-sm">store</span>
-                    <form method="post" action="{% url 'Sucursales:cambiar_sucursal' %}" class="flex items-center">
-                        {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.path }}" />
-                        <select name="sucursal_id" 
-                                onchange="this.form.submit()"
-                                class="bg-surface-container-high border-none rounded-xl text-xs font-bold py-1.5 focus:ring-primary/30">
-                            <option value="">🌐 Todas las Sucursales</option>
-                            {% for suc in todas_sucursales %}
-                            <option value="{{ suc.id }}" {% if sucursal_activa.id == suc.id %}selected{% endif %}>
-                                📍 {{ suc.nombre }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </form>
-                </div>
-                {% elif sucursal_activa %}
-                <div class="hidden md:flex items-center gap-2 mr-4 px-3 py-1.5 bg-surface-container-high rounded-xl">
-                    <span class="material-symbols-outlined text-primary text-sm">location_on</span>
-                    <span class="text-xs font-bold text-on-surface-variant">{{ sucursal_activa.nombre }}</span>
-                </div>
-                {% endif %}
+                {# ── PASO 5: INTEGRACIÓN DEL SELECTOR GLOBAL DE SUCURSALES ── #}
+             
+<div class="flex items-center gap-3">
+    {% if es_duena %}
+    {# Formulario GET que recarga la página enviando el ID limpio #}
+  <form method="GET" action="" class="m-0 flex items-center gap-2">
+    {% for key, value in request.GET.items %}
+        {% if key != 'sucursal_id' %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+    {% endfor %}
 
-                {# Botón e Indicador de Notificaciones #}
+    <span class="material-symbols-outlined text-primary text-sm">store</span>
+    <select name="sucursal_id" 
+            class="bg-surface-container-high border-none rounded-xl text-xs font-bold py-1.5 focus:ring-primary/30 text-on-surface cursor-pointer"
+            onchange="this.form.submit()">
+        
+        <option value="todas" {% if not request.session.sucursal_id or request.session.sucursal_id == 'todas' %}selected{% endif %}>
+            🌎 Todas las Sucursales
+        </option>
+        
+        {% for suc in sucursales %}
+            <option value="{{ suc.id }}" 
+                {% if request.session.sucursal_id|slugify == suc.id|slugify %}selected{% endif %}>
+                📍 {{ suc.nombre }}
+            </option>
+        {% endfor %}
+    </select>
+</form>
+    {% else %}
+    {# Vista de solo lectura para Gerentes/Empleados #}
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-xl">
+        <span class="material-symbols-outlined text-primary text-sm">location_on</span>
+        <span class="text-xs font-bold text-on-surface-variant">
+            {{ sucursal_actual.nombre|default:"Mi Sucursal" }}
+        </span>
+    </div>
+    {% endif %}
+</div>
                 <div class="relative">
                     <button id="btnNotificaciones" onclick="toggleDropdown('dropdownNotificaciones')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors relative">
                         <span class="material-symbols-outlined text-stone-500">notifications</span>
@@ -207,7 +277,6 @@
                         {% endif %}
                     </button>
 
-                    {# Dropdown notificaciones con redirección #}
                     <div id="dropdownNotificaciones" class="dropdown-menu hidden absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
                         <div class="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between">
                             <h3 class="font-bold text-sm text-on-surface">Notificaciones</h3>
@@ -248,7 +317,6 @@
                     </div>
                 </div>
 
-                {# Botón de perfil #}
                 <div class="relative">
                     <button id="btnPerfil" onclick="toggleDropdown('dropdownPerfil')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
                         <span class="material-symbols-outlined text-stone-500">account_circle</span>
@@ -257,8 +325,12 @@
                     <div id="dropdownPerfil" class="dropdown-menu hidden absolute right-0 top-12 w-64 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
                         <div class="px-4 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-on-primary/20 flex items-center justify-center">
-                                    <span class="material-symbols-outlined">person</span>
+                                <div class="w-10 h-10 rounded-full bg-on-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+                                    {% if request.user.foto_perfil %}
+                                    <img src="{{ request.user.foto_perfil.url }}?t={% now 'U' %}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <span class="material-symbols-outlined text-white">person</span>
+                                    {% endif %}
                                 </div>
                                 <div>
                                     <p class="text-sm font-bold">{{ usuario_nombre|default:request.user.username }}</p>
@@ -288,6 +360,7 @@
 
         {% if messages %}
         <div class="px-8 pt-4 space-y-2">
+            {% block mensajes %}
             {% for message in messages %}
             <div class="px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-3
                 {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
@@ -302,6 +375,7 @@
                 <button onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100"><span class="material-symbols-outlined text-base">close</span></button>
             </div>
             {% endfor %}
+            {% endblock %}
         </div>
         {% endif %}
 
@@ -311,22 +385,71 @@
     </div>
 
     <script>
-        function toggleDropdown(id) {
-            const dropdown = document.getElementById(id);
-            const allDropdowns = ['dropdownNotificaciones', 'dropdownPerfil'];
-            allDropdowns.forEach(d => { if (d !== id) document.getElementById(d).classList.add('hidden'); });
-            dropdown.classList.toggle('hidden');
+      
+function toggleDropdown(id) {
+
+    const dropdown = document.getElementById(id);
+
+    if (!dropdown) return;
+
+    const allDropdowns = [
+        'dropdownNotificaciones',
+        'dropdownPerfil'
+    ];
+
+    allDropdowns.forEach(function(dropdownId) {
+
+        const item = document.getElementById(dropdownId);
+
+        if (item && dropdownId !== id) {
+            item.classList.add('hidden');
         }
-        document.addEventListener('click', function(event) {
-            const dropdowns = ['dropdownNotificaciones', 'dropdownPerfil'];
-            const btns = ['btnNotificaciones', 'btnPerfil'];
-            if (!btns.some(b => document.getElementById(b)?.contains(event.target)) && !dropdowns.some(d => document.getElementById(d)?.contains(event.target))) {
-                dropdowns.forEach(d => document.getElementById(d)?.classList.add('hidden'));
+    });
+
+    dropdown.classList.toggle('hidden');
+}
+
+document.addEventListener('click', function(event) {
+
+    const botones = [
+        'btnNotificaciones',
+        'btnPerfil'
+    ];
+
+    const menus = [
+        'dropdownNotificaciones',
+        'dropdownPerfil'
+    ];
+
+    const clickEnBoton = botones.some(function(id) {
+
+        const btn = document.getElementById(id);
+
+        return btn && btn.contains(event.target);
+    });
+
+    const clickEnMenu = menus.some(function(id) {
+
+        const menu = document.getElementById(id);
+
+        return menu && menu.contains(event.target);
+    });
+
+    if (!clickEnBoton && !clickEnMenu) {
+
+        menus.forEach(function(id) {
+
+            const menu = document.getElementById(id);
+
+            if (menu) {
+                menu.classList.add('hidden');
             }
         });
-    </script>
-    {% block scripts_extra %}{% endblock %}
+    }
+});
+</script>
+
+{% block scripts_extra %}{% endblock %}
+
 </body>
 </html>
-
-

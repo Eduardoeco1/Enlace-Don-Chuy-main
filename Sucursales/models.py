@@ -1,5 +1,26 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+
+def usuario_foto_path(instance, filename):
+    """
+    Genera ruta única con timestamp para invalidar caché del navegador.
+    Ejemplo: perfiles/juan_lopez_20260519_143052_abc123.jpg
+    """
+    # Extraer extensión del archivo
+    ext = filename.split('.')[-1]
+
+    # Timestamp actual para romper caché
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+
+    # ID único corto adicional
+    unique_id = uuid.uuid4().hex[:6]
+
+    # Nombre base del usuario (limpio)
+    nombre_base = instance.username.replace(' ', '_').lower()
+
+    return f'perfiles/{nombre_base}_{timestamp}_{unique_id}.{ext}'
 
 
 class Sucursal(models.Model):
@@ -34,6 +55,14 @@ class Usuario(AbstractUser):
         verbose_name= 'Sucursal asignada',
     )
 
+    # ── CAMPO MODIFICADO CON DINÁMICA DE CACHÉ ──────────────────────
+    foto_perfil = models.ImageField(
+        upload_to=usuario_foto_path,  # <-- Cambiado para usar el helper dinámico
+        blank=True,
+        null=True,
+        verbose_name='Foto de Perfil'
+    )
+
     # ── Helpers de rol ────────────────────────────
     @property
     def es_duena(self):
@@ -65,6 +94,7 @@ class Usuario(AbstractUser):
     def __str__(self):
         return f"{self.get_full_name() or self.username} ({self.get_rol_display()})"
     
+
 
 
     

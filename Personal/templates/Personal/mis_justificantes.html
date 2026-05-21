@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block titulo %}Mis Justificantes - Llama y Carbón{% endblock %}
+
+{% block contenido %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-black text-on-surface">Mis Justificantes</h1>
+            <p class="text-sm text-on-surface-variant mt-1">Historial de justificantes enviados</p>
+        </div>
+        <a href="{% url 'Personal:justificantes' %}" 
+           class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-xl hover:bg-primary/90 transition-all">
+            <span class="material-symbols-outlined text-sm">add</span>
+            <span class="font-semibold text-sm">Nuevo Justificante</span>
+        </a>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl p-6 shadow-sm">
+        {% if justificantes %}
+        <div class="space-y-3">
+            {% for just in justificantes %}
+            <div class="bg-surface-container-low rounded-xl p-4 border-l-4
+                        {% if just.estado == 'aprobado' %}border-secondary
+                        {% elif just.estado == 'rechazado' %}border-error
+                        {% else %}border-outline{% endif %}">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-lg text-on-surface-variant">calendar_today</span>
+                            <span class="font-semibold text-sm text-on-surface">{{ just.fecha|date:"d \d\e F \d\e Y"}}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                                        {% if just.estado == 'aprobado' %}bg-secondary-container text-on-secondary-container
+                                        {% elif just.estado == 'rechazado' %}bg-error-container text-on-error-container
+                                        {% else %}bg-surface-container-high text-on-surface-variant{% endif %}">
+                                {{ just.get_estado_display }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-on-surface-variant mb-1">
+                            <strong>Motivo:</strong> {{ just.get_motivo_display }}
+                        </p>
+                        <p class="text-xs text-on-surface-variant">
+                            {{ just.descripcion }}
+                        </p>
+                        
+                        {% if just.comentario_revision %}
+                        <div class="mt-2 p-2 bg-surface-container-highest rounded-lg">
+                            <p class="text-xs font-semibold text-on-surface mb-1">
+                                💬 Comentario de revisión:
+                            </p>
+                            <p class="text-xs text-on-surface-variant">
+                                {{ just.comentario_revision }}
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if just.archivo %}
+                    <a href="{{ just.archivo.url }}" 
+                       target="_blank"
+                       class="ml-4 flex items-center gap-1 px-3 py-2 bg-surface-container-highest text-on-surface rounded-lg hover:bg-surface-container-high transition-all text-xs font-semibold">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        Ver
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <span class="material-symbols-outlined text-6xl text-outline block mb-4">description</span>
+            <p class="text-sm text-on-surface-variant mb-4">No has enviado justificantes aún</p>
+            <a href="{% url 'Personal:justificantes' %}" 
+               class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded-xl hover:bg-primary/90 transition-all">
+                <span class="material-symbols-outlined text-sm">add</span>
+                <span class="font-semibold text-sm">Subir mi primer justificante</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+

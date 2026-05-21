@@ -7,7 +7,6 @@
 <style>
     .order-scrollbar::-webkit-scrollbar { width: 4px; }
     .order-scrollbar::-webkit-scrollbar-thumb { background: #d7c2ba; border-radius: 10px; }
-    /* Oculta el sidebar de base.html para POS fullscreen */
 </style>
 {% endblock %}
 
@@ -24,15 +23,15 @@
         <div class="flex gap-3 p-6 pb-4 flex-wrap">
             <a href="{% url 'Ventas:Ventas' %}?categoria="
                class="px-5 py-2 rounded-full font-bold text-sm transition-all
-                   {% if not categoria_sel %}bg-primary-container text-on-primary-container shadow-md
-                   {% else %}bg-white text-stone-600 border border-stone-200 hover:border-orange-200 hover:bg-orange-50{% endif %}">
+                    {% if not categoria_sel %}bg-primary-container text-on-primary-container shadow-md
+                    {% else %}bg-white text-stone-600 border border-stone-200 hover:border-orange-200 hover:bg-orange-50{% endif %}">
                 Todos
             </a>
             {% for cat in categorias %}
             <a href="{% url 'Ventas:Ventas' %}?categoria={{ cat.id }}"
                class="px-5 py-2 rounded-full font-bold text-sm transition-all
-                   {% if categoria_sel == cat.id|stringformat:'s' %}bg-primary-container text-on-primary-container shadow-md
-                   {% else %}bg-white text-stone-600 border border-stone-200 hover:border-orange-200 hover:bg-orange-50{% endif %}">
+                    {% if categoria_sel == cat.id|stringformat:'s' %}bg-primary-container text-on-primary-container shadow-md
+                    {% else %}bg-white text-stone-600 border border-stone-200 hover:border-orange-200 hover:bg-orange-50{% endif %}">
                 {{ cat.nombre }}
             </a>
             {% endfor %}
@@ -84,16 +83,14 @@
         <div class="p-5 border-b border-stone-100 bg-stone-50/50">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-extrabold text-primary font-headline">Pedido</h2>
-                <span id="ticketBadge"
-                      class="bg-orange-100 text-orange-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
+                <span id="ticketBadge" class="bg-orange-100 text-orange-900 px-3 py-1 rounded-full text-[10px] font-bold uppercase">
                     {{ ticket }}
                 </span>
             </div>
             <div class="space-y-1">
                 <label class="text-[10px] uppercase font-bold text-stone-400">Tipo de Servicio</label>
                 <div class="relative">
-                    <select id="tipoServicio"
-                        class="w-full appearance-none bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none">
+                    <select id="tipoServicio" class="w-full appearance-none bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none">
                         <option value="llevar">Para Llevar</option>
                         <option value="mesa">En Mesa</option>
                         <option value="delivery">Delivery</option>
@@ -105,7 +102,9 @@
 
         {# Lista de items del carrito #}
         <div id="carritoLista" class="flex-1 overflow-y-auto p-5 order-scrollbar space-y-4">
-            {# Items insertados por JS #}
+            {# Contenedor dinámico requerido por JS #}
+            <div id="items-carrito" class="space-y-4"></div>
+            
             <div id="carritoVacio" class="flex flex-col items-center justify-center h-full text-center text-stone-300 py-10">
                 <span class="material-symbols-outlined text-5xl mb-3">shopping_cart</span>
                 <p class="text-sm font-medium">El pedido está vacío</p>
@@ -114,48 +113,40 @@
         </div>
 
         {# Footer: totales y pago #}
-        <div class="p-5 bg-stone-50 border-t border-stone-200">
-            <div class="space-y-2 mb-5">
+        <div class="p-5 border-t border-stone-100 bg-stone-50/50 space-y-4">
+            <div class="space-y-2">
                 <div class="flex justify-between text-sm text-stone-600">
                     <span>Subtotal</span>
-                    <span id="resSubtotal" class="font-medium">$0.00</span>
-                </div>
-                <div class="flex justify-between text-sm text-stone-600">
-                    <span>IVA (16%)</span>
-                    <span id="resIva" class="font-medium">$0.00</span>
+                    <span id="subtotal" class="font-medium">$0.00</span>
                 </div>
                 <div class="flex justify-between text-xl font-extrabold text-primary pt-2 border-t border-stone-200 mt-2">
                     <span>Total</span>
-                    <span id="resTotal">$0.00</span>
+                    <span id="total">$0.00</span>
                 </div>
             </div>
 
             {# Métodos de pago #}
             <div class="grid grid-cols-2 gap-3 mb-4">
-                <button onclick="seleccionarPago(this, 'efectivo')"
-                    data-metodo="efectivo"
-                    class="metodo-pago flex flex-col items-center justify-center gap-1 py-3 border-2 border-stone-200 rounded-xl hover:border-primary transition-colors group">
-                    <span class="material-symbols-outlined text-stone-400 group-hover:text-primary">payments</span>
-                    <span class="text-[10px] font-bold uppercase text-stone-500">Efectivo</span>
+                <button type="button" onclick="seleccionarPago(this, 'efectivo')" data-metodo="efectivo"
+                    class="metodo-pago active-payment flex flex-col items-center justify-center gap-1 py-3 border-2 border-primary bg-orange-50/50 rounded-xl transition-colors group">
+                    <span class="material-symbols-outlined text-primary">payments</span>
+                    <span class="text-[10px] font-bold uppercase text-primary">Efectivo</span>
                 </button>
-                <button onclick="seleccionarPago(this, 'tarjeta')"
-                    data-metodo="tarjeta"
+                <button type="button" onclick="seleccionarPago(this, 'tarjeta')" data-metodo="tarjeta"
                     class="metodo-pago flex flex-col items-center justify-center gap-1 py-3 border-2 border-stone-200 rounded-xl hover:border-primary transition-colors group">
                     <span class="material-symbols-outlined text-stone-400 group-hover:text-primary">credit_card</span>
                     <span class="text-[10px] font-bold uppercase text-stone-500">Tarjeta</span>
                 </button>
             </div>
 
-            <button id="btnProcesar"
-                onclick="procesarVenta()"
+            <button id="btnProcesar" type="button" onclick="procesarVenta()"
                 class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold text-lg shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-150 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">check_circle</span>
                 Procesar Venta
             </button>
 
             {# Toast de confirmación #}
-            <div id="toastExito"
-                 class="hidden mt-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-xl text-sm font-bold text-center">
+            <div id="toastExito" class="hidden mt-3 px-4 py-3 bg-secondary-container text-on-secondary-container rounded-xl text-sm font-bold text-center">
                 ✅ Venta procesada correctamente
             </div>
         </div>
@@ -167,199 +158,202 @@
 
 {% block scripts_extra %}
 <script>
-// ═══════════════════════════════════════════
-//  CARRITO — Llama y Carbón POS
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════════════
+// SISTEMA DE CARRITO - TOTALMENTE ACOPLADO Y OPERATIVO
+// ══════════════════════════════════════════════
 
-const IVA        = 0.16;
-const CSRF_TOKEN = '{{ csrf_token }}';
-const URL_VENTA  = '{% url "Ventas:procesar" %}';
+let pedidoActual = [];
+let metodoPagoSeleccionado = 'efectivo';
 
-let carrito = {};        // { id: { id, nombre, precio, imagen, descripcion, cantidad } }
-let metodoPago = 'efectivo';
-
-// ── Agregar producto al carrito ──────────────
-function agregarAlCarrito(id, nombre, precio, imagen, descripcion) {
-    if (carrito[id]) {
-        carrito[id].cantidad++;
+function agregarAlCarrito(productoId, nombre, precio) {
+    const item = pedidoActual.find(i => i.productoId === productoId);
+    
+    if (item) {
+        item.cantidad++;
     } else {
-        carrito[id] = { id, nombre, precio: parseFloat(precio), imagen, descripcion, cantidad: 1 };
+        pedidoActual.push({
+            productoId: productoId,
+            nombre: nombre,
+            precio: parseFloat(precio),
+            text_precio: precio,
+            cantidad: 1,
+            notas: ''
+        });
     }
-    renderCarrito();
-    animarBoton(id);
+    actualizarCarrito();
 }
 
-// ── Cambiar cantidad ─────────────────────────
-function cambiarCantidad(id, delta) {
-    if (!carrito[id]) return;
-    carrito[id].cantidad += delta;
-    if (carrito[id].cantidad <= 0) {
-        delete carrito[id];
+function aumentarCantidad(productoId) {
+    const item = pedidoActual.find(i => i.productoId === productoId);
+    if (item) {
+        item.cantidad++;
+        actualizarCarrito();
     }
-    renderCarrito();
 }
 
-// ── Eliminar item ────────────────────────────
-function eliminarItem(id) {
-    delete carrito[id];
-    renderCarrito();
+function disminuirCantidad(productoId) {
+    const item = pedidoActual.find(i => i.productoId === productoId);
+    if (item) {
+        if (item.cantidad > 1) {
+            item.cantidad--;
+        } else {
+            pedidoActual = pedidoActual.filter(i => i.productoId !== productoId);
+        }
+        actualizarCarrito();
+    }
 }
 
-// ── Seleccionar método de pago ───────────────
+function eliminarDelCarrito(productoId) {
+    pedidoActual = pedidoActual.filter(i => i.productoId !== productoId);
+    actualizarCarrito();
+}
+
+function actualizarNotas(productoId, notas) {
+    const item = pedidoActual.find(i => i.productoId === productoId);
+    if (item) {
+        item.notas = notas;
+    }
+}
+
 function seleccionarPago(btn, metodo) {
-    metodoPago = metodo;
     document.querySelectorAll('.metodo-pago').forEach(b => {
-        b.classList.remove('border-primary', 'bg-primary/5');
+        b.classList.remove('border-primary', 'bg-orange-50/50');
         b.classList.add('border-stone-200');
+        const icon = b.querySelector('.material-symbols-outlined');
+        const text = b.querySelector('span:not(.material-symbols-outlined)');
+        if(icon) icon.className = 'material-symbols-outlined text-stone-400';
+        if(text) text.className = 'text-[10px] font-bold uppercase text-stone-500';
     });
-    btn.classList.add('border-primary', 'bg-primary/5');
+
     btn.classList.remove('border-stone-200');
+    btn.classList.add('border-primary', 'bg-orange-50/50');
+    const activeIcon = btn.querySelector('.material-symbols-outlined');
+    const activeText = btn.querySelector('span:not(.material-symbols-outlined)');
+    if(activeIcon) activeIcon.className = 'material-symbols-outlined text-primary';
+    if(activeText) activeText.className = 'text-[10px] font-bold uppercase text-primary';
+    
+    metodoPagoSeleccionado = metodo;
 }
 
-// ── Renderizar carrito ───────────────────────
-function renderCarrito() {
-    const lista  = document.getElementById('carritoLista');
-    const vacio  = document.getElementById('carritoVacio');
-    const items  = Object.values(carrito);
-
-    if (items.length === 0) {
-        lista.innerHTML = '';
-        lista.appendChild(vacio);
-        vacio.classList.remove('hidden');
-        actualizarTotales(0);
+function actualizarCarrito() {
+    const contenedorCarrito = document.getElementById('items-carrito');
+    const vistaVacia = document.getElementById('carritoVacio');
+    const subtotalElement = document.getElementById('subtotal');
+    const totalElement = document.getElementById('total');
+    
+    contenedorCarrito.innerHTML = '';
+    
+    if (pedidoActual.length === 0) {
+        vistaVacia.classList.remove('hidden');
+        subtotalElement.textContent = '$0.00';
+        totalElement.textContent = '$0.00';
         return;
     }
-
-    vacio.classList.add('hidden');
-
-    let html = '';
-    items.forEach(item => {
-        const subtotal = (item.precio * item.cantidad).toFixed(2);
-        html += `
-        <div class="flex gap-3 group" id="item-${item.id}">
-            <div class="h-16 w-16 rounded-xl bg-stone-100 overflow-hidden shrink-0">
-                <img src="${item.imagen}"
-                     alt="${item.nombre}"
-                     onerror="this.src='https://placehold.co/64x64/f0eded/904800?text=${item.nombre[0]}'"
-                     class="w-full h-full object-cover" />
-            </div>
-            <div class="flex-1 min-w-0">
-                <div class="flex justify-between items-start">
-                    <h4 class="font-bold text-stone-900 text-sm leading-tight truncate pr-2">${item.nombre}</h4>
-                    <span class="text-sm font-bold text-stone-900 shrink-0">$${subtotal}</span>
+    
+    vistaVacia.classList.add('hidden');
+    let subtotal = 0;
+    
+    pedidoActual.forEach(item => {
+        const itemTotal = item.precio * item.cantidad;
+        subtotal += itemTotal;
+        
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'bg-stone-50 border border-stone-100 rounded-xl p-4 space-y-3';
+        itemDiv.innerHTML = `
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <p class="font-bold text-stone-800 text-sm">${item.nombre}</p>
+                    <p class="text-xs text-stone-500">$${item.precio.toFixed(2)} c/u</p>
                 </div>
-                <p class="text-xs text-stone-400 mt-0.5 italic truncate">${item.descripcion}</p>
-                <div class="flex items-center justify-between mt-2">
-                    <div class="flex items-center bg-stone-100 rounded-full p-1 gap-2">
-                        <button onclick="cambiarCantidad(${item.id}, -1)"
-                            class="w-6 h-6 flex items-center justify-center rounded-full bg-white text-stone-600 hover:text-primary shadow-sm transition-colors">
-                            <span class="material-symbols-outlined text-sm">remove</span>
-                        </button>
-                        <span class="text-xs font-bold w-5 text-center">${String(item.cantidad).padStart(2,'0')}</span>
-                        <button onclick="cambiarCantidad(${item.id}, 1)"
-                            class="w-6 h-6 flex items-center justify-center rounded-full bg-white text-stone-600 hover:text-primary shadow-sm transition-colors">
-                            <span class="material-symbols-outlined text-sm">add</span>
-                        </button>
-                    </div>
-                    <button onclick="eliminarItem(${item.id})"
-                        class="text-stone-300 hover:text-error transition-colors p-1 rounded-full hover:bg-error-container/20">
-                        <span class="material-symbols-outlined text-lg">delete</span>
+                <button type="button" onclick="eliminarDelCarrito(${item.productoId})"
+                        class="text-red-600 hover:bg-red-50 rounded-lg p-1.5 transition-colors">
+                    <span class="material-symbols-outlined text-lg">delete</span>
+                </button>
+            </div>
+            
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1 bg-stone-200/60 rounded-lg p-0.5">
+                    <button type="button" onclick="disminuirCantidad(${item.productoId})"
+                            class="w-7 h-7 flex items-center justify-center hover:bg-white rounded-md transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-sm">remove</span>
+                    </button>
+                    <span class="w-8 text-center font-bold text-xs text-stone-700">${item.cantidad}</span>
+                    <button type="button" onclick="aumentarCantidad(${item.productoId})"
+                            class="w-7 h-7 flex items-center justify-center hover:bg-white rounded-md transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-sm">add</span>
                     </button>
                 </div>
+                <span class="font-bold text-stone-800 text-sm">$${itemTotal.toFixed(2)}</span>
             </div>
-        </div>`;
+            
+            <input type="text" 
+                   placeholder="Notas especiales (sin cebolla, bien tostado...)"
+                   value="${item.notas}"
+                   onchange="actualizarNotas(${item.productoId}, this.value)"
+                   class="w-full px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 text-xs focus:ring-1 focus:ring-primary outline-none">
+        `;
+        contenedorCarrito.appendChild(itemDiv);
     });
-
-    lista.innerHTML = html;
-
-    // Calcula totales
-    const subtotal = items.reduce((acc, i) => acc + i.precio * i.cantidad, 0);
-    actualizarTotales(subtotal);
+    
+    subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+    totalElement.textContent = `$${subtotal.toFixed(2)}`;
 }
 
-// ── Actualizar totales en el DOM ─────────────
-function actualizarTotales(subtotal) {
-    const iva   = subtotal * IVA;
-    const total = subtotal + iva;
-
-    document.getElementById('resSubtotal').textContent = '$' + subtotal.toFixed(2);
-    document.getElementById('resIva').textContent      = '$' + iva.toFixed(2);
-    document.getElementById('resTotal').textContent    = '$' + total.toFixed(2);
-}
-
-// ── Procesar venta via API ───────────────────
 async function procesarVenta() {
-    const items = Object.values(carrito);
-    if (items.length === 0) {
-        alert('Agrega al menos un producto al pedido.');
+    if (pedidoActual.length === 0) {
+        alert('❌ El carrito está vacío');
         return;
     }
-
-    const btn = document.getElementById('btnProcesar');
-    btn.disabled    = true;
-    btn.innerHTML   = '<span class="material-symbols-outlined animate-spin">sync</span> Procesando...';
-
-    const payload = {
-        tipo:   document.getElementById('tipoServicio').value,
-        metodo: metodoPago,
-        items:  items.map(i => ({
-            producto_id: i.id,
-            cantidad:    i.cantidad,
-            notas:       '',
-        })),
-    };
-
+    
+    const tipoServicio = document.getElementById('tipoServicio').value;
+    const btnProcesar = document.getElementById('btnProcesar');
+    const toastExito = document.getElementById('toastExito');
+    
+    btnProcesar.disabled = true;
+    btnProcesar.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Procesando...';
+    
     try {
-        const resp = await fetch(URL_VENTA, {
-            method:  'POST',
+        const response = await fetch("{% url 'Ventas:procesar' %}", {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken':  CSRF_TOKEN,
+                'X-CSRFToken': '{{ csrf_token }}'
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+                tipo: tipoServicio,
+                metodo_pago: metodoPagoSeleccionado,
+                items: pedidoActual.map(item => ({
+                    producto_id: item.productoId,
+                    cantidad: item.cantidad,
+                    notas: item.notas
+                }))
+            })
         });
-
-        const data = await resp.json();
-
-        if (data.ok) {
-            // Muestra confirmación
-            const toast = document.getElementById('toastExito');
-            toast.textContent = `✅ Venta ${data.ticket} procesada — Total: $${data.total.toFixed(2)}`;
-            toast.classList.remove('hidden');
-
-            // Limpia el carrito
-            carrito = {};
-            renderCarrito();
-
-            setTimeout(() => toast.classList.add('hidden'), 4000);
+        
+        const data = await response.json();
+        
+        if (data.ok || response.ok) {
+            toastExito.classList.remove('hidden');
+            alert(`✅ Venta procesada con éxito!\nTicket: ${data.ticket || 'Generado'}\nTotal: $${subtotal.toFixed(2)}`);
+            
+            pedidoActual = [];
+            actualizarCarrito();
+            window.location.reload();
         } else {
-            alert('Error: ' + data.error);
+            alert('❌ Error del servidor: ' + (data.error || 'No se pudo guardar la venta.'));
         }
-    } catch (e) {
-        alert('Error de conexión: ' + e.message);
+        
+    } catch (error) {
+        console.error(error);
+        alert('❌ Error de comunicación con el servidor de Llama y Carbón.');
     } finally {
-        btn.disabled  = false;
-        btn.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;">check_circle</span> Procesar Venta';
+        btnProcesar.disabled = false;
+        btnProcesar.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Procesar Venta';
     }
 }
 
-// ── Animación visual al agregar ──────────────
-function animarBoton(id) {
-    // Pequeño flash verde en el header del carrito
-    const badge = document.getElementById('ticketBadge');
-    badge.classList.add('bg-green-100', 'text-green-800');
-    setTimeout(() => {
-        badge.classList.remove('bg-green-100', 'text-green-800');
-        badge.classList.add('bg-orange-100', 'text-orange-900');
-    }, 300);
-}
-
-// Init: activa primer método de pago
-document.addEventListener('DOMContentLoaded', () => {
-    const primero = document.querySelector('.metodo-pago');
-    if (primero) seleccionarPago(primero, 'efectivo');
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarCarrito();
 });
 </script>
 {% endblock %}
-
-

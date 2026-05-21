@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from Sucursales.models import Sucursal
+from Inventario.models import Producto as ProductoInventario
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
@@ -70,7 +71,6 @@ class Pedido(models.Model):
     tipo      = models.CharField(max_length=20, choices=TIPO_CHOICES, default='llevar')
     estado    = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='abierto')
     subtotal  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    iva       = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     creado_en = models.DateTimeField(default=timezone.now)
     cajero    = models.ForeignKey('Sucursales.Usuario', on_delete=models.SET_NULL,
@@ -85,7 +85,11 @@ class Pedido(models.Model):
 
 class DetallePedido(models.Model):
     pedido   = models.ForeignKey(Pedido, on_delete=models.CASCADE, related_name='detalles')
-    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
+    producto = models.ForeignKey(
+        ProductoInventario, 
+        on_delete=models.PROTECT, 
+        verbose_name='Producto'
+    )
     cantidad = models.PositiveIntegerField(default=1)
     precio_u = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
@@ -97,4 +101,5 @@ class DetallePedido(models.Model):
 
     def __str__(self):
         return f"{self.cantidad}x {self.producto.nombre}"
+    
     

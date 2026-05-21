@@ -21,10 +21,10 @@ class DetalleInline(admin.TabularInline):
 
 @admin.register(Pedido)
 class PedidoAdmin(admin.ModelAdmin):
-    list_display  = ('ticket', 'tipo', 'estado', 'subtotal', 'iva', 'total', 'creado_en')
+    list_display  = ('ticket', 'tipo', 'estado', 'subtotal', 'total', 'creado_en')
     list_filter   = ('estado', 'tipo')
     inlines       = [DetalleInline]
-    readonly_fields = ('ticket', 'subtotal', 'iva', 'total')
+    readonly_fields = ('ticket', 'subtotal', 'total')
 
 
     

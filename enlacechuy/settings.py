@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -37,10 +36,7 @@ INSTALLED_APPS = [
     'Perfil',
     'Personal',
     'Ventas',
-
-
-
-
+    'Notificaciones',
 
 ]
 
@@ -57,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'enlacechuy.middleware.SucursalActualMiddleware',
 ]
 
 ROOT_URLCONF = 'enlacechuy.urls'
@@ -71,8 +68,13 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'Perfil.context_processors.notificaciones_globales',
-                'Sucursales.context_processors.sucursal_contexto',  
+                
+                # 👇 AQUÍ ESTÁ EL CAMBIO: El inyector nuevo de las sucursales 👇
+                'Sucursales.context_processors.sucursal_contexto',
+                
+                # 🌟 CONTEXT PROCESSOR UNIFICADO: Roles, Notificaciones y Sucursal Global
+                'Perfil.context_processors.roles_y_notificaciones_globales',
+
             ],
         },
     },
@@ -86,11 +88,18 @@ WSGI_APPLICATION = 'enlacechuy.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'prueba_l7ss',
+        'USER': 'prueba_l7ss_user',
+        'PASSWORD': 'zFBB7Xd7cTlQlAdbOaIVvOhHV9Nwbwnd',
+        'HOST': 'dpg-d86va7ojo6nc73aukp50-a.oregon-postgres.render.com',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode':'require',
+        }
+
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -120,7 +129,7 @@ TIME_ZONE = 'America/Mexico_City'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -130,6 +139,28 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/panel-control/'
+
+# ── CONFIGURACIÓN: ARCHIVOS MEDIA ───────────────────────────
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
+# ── NUEVA CONFIGURACIÓN: SERVICIO DE EMAIL (GMAIL) ───────────
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'tu-email@gmail.com'  # Cambiar por tu correo real de Gmail
+EMAIL_HOST_PASSWORD = 'tu-app-password'  # Cambiar por tu contraseña de aplicación de Google
+DEFAULT_FROM_EMAIL = 'Llama y Carbón <noreply@llamaycarbon.com>'
+
+
+
+
+
+
+
+
+
+
 

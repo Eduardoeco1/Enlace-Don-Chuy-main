@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block titulo %}Justificantes - Llama y Carbón{% endblock %}
+
+{% block contenido %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-black text-on-surface">Justificantes de Ausencia</h1>
+            <p class="text-sm text-on-surface-variant mt-1">Sube documentos que respalden tus ausencias</p>
+        </div>
+        <a href="{% url 'Personal:asistencia' %}" 
+           class="flex items-center gap-2 px-4 py-2 bg-surface-container-high text-on-surface rounded-xl hover:bg-surface-container-highest transition-all">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            <span class="font-semibold text-sm">Volver</span>
+        </a>
+    </div>
+
+    <!-- Formulario de Nuevo Justificante -->
+    <div class="bg-surface-container rounded-2xl p-6 shadow-sm">
+        <h2 class="text-xl font-bold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined">upload_file</span>
+            Subir Nuevo Justificante
+        </h2>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Fecha -->
+            <div>
+                <label class="block text-sm font-semibold text-on-surface mb-2">
+                    Fecha de Ausencia *
+                </label>
+                {{ form.fecha }}
+                {% if form.fecha.errors %}
+                <p class="mt-1 text-xs text-error">{{ form.fecha.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Motivo -->
+            <div>
+                <label class="block text-sm font-semibold text-on-surface mb-2">
+                    Motivo *
+                </label>
+                {{ form.motivo }}
+                {% if form.motivo.errors %}
+                <p class="mt-1 text-xs text-error">{{ form.motivo.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Descripción -->
+            <div>
+                <label class="block text-sm font-semibold text-on-surface mb-2">
+                    Descripción *
+                </label>
+                {{ form.descripcion }}
+                {% if form.descripcion.errors %}
+                <p class="mt-1 text-xs text-error">{{ form.descripcion.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-on-surface-variant">
+                    Explica detalladamente el motivo de tu ausencia
+                </p>
+            </div>
+
+            <!-- Archivo -->
+            <div>
+                <label class="block text-sm font-semibold text-on-surface mb-2">
+                    Archivo Adjunto *
+                </label>
+                {{ form.archivo }}
+                {% if form.archivo.errors %}
+                <p class="mt-1 text-xs text-error">{{ form.archivo.errors.0 }}</p>
+                {% endif %}
+                <p class="mt-1 text-xs text-on-surface-variant">
+                    📎 Formatos aceptados: PDF, imágenes (JPG, PNG), documentos (DOC, DOCX)
+                </p>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-2">
+                <button type="submit" 
+                        class="flex-1 bg-primary text-on-primary py-3 rounded-xl font-bold hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">send</span>
+                    Enviar Justificante
+                </button>
+                <a href="{% url 'Personal:asistencia' %}"
+                   class="px-6 py-3 bg-surface-container-high text-on-surface rounded-xl font-semibold hover:bg-surface-container-highest transition-all">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Lista de Justificantes Enviados -->
+    <div class="bg-surface-container rounded-2xl p-6 shadow-sm">
+        <h2 class="text-xl font-bold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined">folder_open</span>
+            Mis Justificantes Enviados
+        </h2>
+
+        {% if justificantes %}
+        <div class="space-y-3">
+            {% for just in justificantes %}
+            <div class="bg-surface-container-low rounded-xl p-4 border-l-4
+                        {% if just.estado == 'aprobado' %}border-secondary
+                        {% elif just.estado == 'rechazado' %}border-error
+                        {% else %}border-outline{% endif %}">
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-lg text-on-surface-variant">calendar_today</span>
+                            <span class="font-semibold text-sm text-on-surface">{{ just.fecha|date:"d \d\e F \d\e Y" }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold
+                                        {% if just.estado == 'aprobado' %}bg-secondary-container text-on-secondary-container
+                                        {% elif just.estado == 'rechazado' %}bg-error-container text-on-error-container
+                                        {% else %}bg-surface-container-high text-on-surface-variant{% endif %}">
+                                {{ just.get_estado_display }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-on-surface-variant mb-1">
+                            <strong>Motivo:</strong> {{ just.get_motivo_display }}
+                        </p>
+                        <p class="text-xs text-on-surface-variant">
+                            {{ just.descripcion|truncatewords:20 }}
+                        </p>
+                        
+                        {% if just.comentario_revision %}
+                        <div class="mt-2 p-2 bg-surface-container-highest rounded-lg">
+                            <p class="text-xs font-semibold text-on-surface mb-1">
+                                💬 Comentario de revisión:
+                            </p>
+                            <p class="text-xs text-on-surface-variant">
+                                {{ just.comentario_revision }}
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="ml-4">
+                        {% if just.archivo %}
+                        <a href="{{ just.archivo.url }}" 
+                           target="_blank"
+                           class="flex items-center gap-1 px-3 py-2 bg-surface-container-highest text-on-surface rounded-lg hover:bg-surface-container-high transition-all text-xs font-semibold">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            Ver
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mt-2 flex items-center gap-3 text-xs text-on-surface-variant">
+                    <span>📅 Enviado: {{ just.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                    {% if just.fecha_revision %}
+                    <span>✓ Revisado: {{ just.fecha_revision|date:"d/m/Y H:i" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <span class="material-symbols-outlined text-6xl text-outline block mb-4">description</span>
+            <p class="text-sm text-on-surface-variant">No has enviado justificantes aún</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Información -->
+    <div class="bg-tertiary-fixed/30 border border-tertiary-fixed rounded-xl p-4">
+        <div class="flex gap-3">
+            <span class="material-symbols-outlined text-tertiary flex-shrink-0">info</span>
+            <div class="text-xs text-on-tertiary-container space-y-1">
+                <p class="font-semibold">Importante:</p>
+                <ul class="list-disc list-inside space-y-1 ml-2">
+                    <li>Los justificantes deben enviarse lo antes posible</li>
+                    <li>El archivo debe ser legible y válido (receta médica, comprobante, etc.)</li>
+                    <li>Tu gerente o la dueña revisará y aprobará/rechazará tu justificante</li>
+                    <li>Recibirás notificación una vez revisado</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

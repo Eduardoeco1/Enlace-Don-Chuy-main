@@ -26,13 +26,23 @@
     <div class="flex justify-between items-end">
         <div class="space-y-1">
             <h2 class="text-4xl font-extrabold text-primary font-headline">Gestión de Personal</h2>
-            <p class="text-on-surface-variant">Administra el equipo de cocina y sala de tus sucursales de Atlixco y Acapulco.</p>
+            <p class="text-on-surface-variant">Administra el equipo de cocina y sala de tus sucursales.</p>
         </div>
-        <button onclick="prepararModalAñadir()"
-            class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-primary-container transition-all">
-            <span class="material-symbols-outlined text-xl">add</span>
-            Añadir Personal
-        </button>
+        <div class="flex items-center gap-3">
+            {% if es_duena or request.user.empleado.rol == 'gerente' %}
+            <button onclick="abrirModalTurno()" 
+                    class="px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-secondary-container transition-all">
+                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                Programar Turno
+            </button>
+            {% endif %}
+
+            <button onclick="prepararModalAñadir()"
+                class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-primary-container transition-all">
+                <span class="material-symbols-outlined text-xl">add</span>
+                Añadir Personal
+            </button>
+        </div>
     </div>
 
     {# ── Widgets de métricas ── #}
@@ -74,39 +84,51 @@
         </div>
     </div>
 
-    {# ── Filtros ── #}
-    <form method="get" action="{% url 'Personal:personal' %}" class="flex flex-wrap items-center gap-4">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
-            <input type="text" name="q" value="{{ busqueda }}"
-                   placeholder="Buscar por alias, nombre o correo..."
-                   class="pl-10 pr-4 py-2 bg-surface-container-high border-none rounded-xl text-sm focus:ring-2 focus:ring-primary w-72" />
-        </div>
+    {# ── BARRA DE FILTROS COMPLETA (Buscador, Sucursal y Rol) ── #}
+    <div class="mt-6 mb-6">
+        <form method="GET" action="{% url 'Personal:personal' %}" class="flex flex-wrap items-center gap-3">
+            
+            {# 1. Buscador de Empleados #}
+            <div class="relative flex-1 min-w-[250px] max-w-md">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
+                <input type="text" name="q" value="{{ busqueda }}" 
+                       placeholder="Buscar por alias, nombre o correo"
+                       class="w-full pl-9 pr-4 py-2.5 bg-surface-container-high rounded-full border-none text-sm font-medium focus:ring-2 focus:ring-primary"
+                       onkeypress="if(event.key === 'Enter') this.form.submit();">
+            </div>
 
-        <select name="sucursal" onchange="this.form.submit()"
-            class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary">
-            <option value="">Todas las Sucursales</option>
-            {% for suc in sucursales %}
-            <option value="{{ suc.id }}" {% if sucursal_sel == suc.id|stringformat:"s" %}selected{% endif %}>
-                {{ suc.nombre }}
-            </option>
-            {% endfor %}
-        </select>
+            {# 2. Selector de Sucursal (El Gemelo Sincronizado) #}
+            <select name="sucursal_id" onchange="this.form.submit()" autocomplete="off"
+                    class="bg-surface-container-high border-none rounded-full text-sm font-semibold px-5 py-2.5 focus:ring-2 focus:ring-primary cursor-pointer transition-colors hover:bg-surface-container-highest">
+                
+                <option value="todas" {% if not request.session.sucursal_id or request.session.sucursal_id == 'todas' %}selected{% endif %}>
+                    Todas las Sucursales
+                </option>
+                
+                {% for suc in sucursales %}
+                    <option value="{{ suc.id }}" {% if request.session.sucursal_id|slugify == suc.id|slugify %}selected{% endif %}>
+                        {{ suc.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
 
-        <select name="rol" onchange="this.form.submit()"
-            class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary">
-            <option value="">Todos los Roles</option>
-            {% for cod, nombre in roles_list %}
-            <option value="{{ cod }}" {% if rol_sel == cod %}selected{% endif %}>
-                {{ nombre }}
-            </option>
-            {% endfor %}
-        </select>
+            {# 3. Selector de Roles #}
+            <select name="rol" onchange="this.form.submit()" 
+                    class="bg-surface-container-high border-none rounded-full text-sm font-semibold px-5 py-2.5 focus:ring-2 focus:ring-primary cursor-pointer transition-colors hover:bg-surface-container-highest">
+                <option value="">Todos los Roles</option>
+                {% for cod_rol, nombre_rol in roles_list %}
+                    <option value="{{ cod_rol }}" {% if rol_sel == cod_rol %}selected{% endif %}>
+                        {{ nombre_rol }}
+                    </option>
+                {% endfor %}
+            </select>
 
-        <a href="{% url 'Personal:personal' %}" class="text-sm font-bold text-primary hover:underline ml-auto">
-            Limpiar Filtros
-        </a>
-    </form>
+            {# 4. Botón Limpiar Filtros #}
+            <a href="{% url 'Personal:personal' %}" class="text-sm font-bold text-primary hover:underline ml-auto ml-4">
+                Limpiar Filtros
+            </a>
+        </form>
+    </div>
 
     {# ── Tabla de equipo ── #}
     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden">
@@ -132,9 +154,9 @@
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30 flex-shrink-0">
                                     <img alt="{{ empleado.nombre_completo }}"
-                                         src="{{ empleado.foto_url }}"
-                                         onerror="this.src='https://placehold.co/40x40/f0eded/904800?text={{ empleado.usuario.username|first|upper }}'"
-                                         class="w-full h-full object-cover" />
+                                        src="{{ empleado.foto_url }}"
+                                        onerror="this.src='https://placehold.co/40x40/f0eded/904800?text={{ empleado.usuario.username|first|upper }}'"
+                                        class="w-full h-full object-cover" />
                                 </div>
                                 <div>
                                     <p class="font-bold text-primary">{{ empleado.nombre_completo }}</p>
@@ -172,9 +194,9 @@
                                 </button>
                                 
                                 <a href="{% url 'Personal:eliminar_empleado' empleado.id %}" 
-                                   onclick="return confirm('¿Estás seguro de eliminar a @{{ empleado.usuario.username }}? Esta acción no se puede deshacer.')"
-                                   class="p-2 hover:bg-error-container rounded-full text-error" 
-                                   title="Eliminar">
+                                onclick="return confirm('¿Estás seguro de eliminar a @{{ empleado.usuario.username }}? Esta acción no se puede deshacer.')"
+                                class="p-2 hover:bg-error-container rounded-full text-error" 
+                                title="Eliminar">
                                     <span class="material-symbols-outlined text-xl">delete</span>
                                 </a>
                             </div>
@@ -195,17 +217,20 @@
     {# ── Turnos + Cobertura ── #}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
         <div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/20 shadow-sm">
-            <h4 class="text-xl font-bold text-primary font-headline mb-4">Próximos Turnos</h4>
+            <h4 class="text-xl font-bold text-primary font-headline mb-4">Próximos Turnos Programados</h4>
             <div class="space-y-4">
                 {% for turno in proximos_turnos %}
-                <div class="flex items-center justify-between border-l-4 border-primary pl-4 py-2">
+                <div class="flex items-center justify-between border-l-4 border-primary pl-4 py-2 bg-surface-container-low/30 rounded-r-lg pr-4">
                     <div>
-                        <p class="font-bold text-primary">{{ turno.nombre }}</p>
-                        <p class="text-xs text-on-surface-variant">{{ turno.fecha|date:"d M" }}, {{ turno.hora_inicio|time:"H:i" }}</p>
+                        <p class="font-bold text-primary">{{ turno.empleado.nombre_completo }}</p>
+                        <p class="text-xs text-on-surface-variant capitalize">{{ turno.get_tipo_turno_display }} • {{ turno.fecha|date:"d M" }}</p>
+                    </div>
+                    <div class="text-right text-xs font-semibold text-stone-500">
+                        {{ turno.hora_inicio|time:"H:i" }} - {{ turno.hora_fin|time:"H:i" }} hrs
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-sm text-on-surface-variant">Sin turnos programados.</p>
+                <p class="text-sm text-on-surface-variant">Sin turnos programados en esta sucursal.</p>
                 {% endfor %}
             </div>
         </div>
@@ -223,7 +248,7 @@
                     </div>
                     <div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
                         <div class="h-full rounded-full transition-all {% if rol.critico %}bg-error{% elif rol.bajo %}bg-tertiary{% else %}bg-green-600{% endif %}"
-                             style="width: {{ rol.porcentaje }}%">
+                            style="width: {{ rol.porcentaje }}%">
                         </div>
                     </div>
                 </div>
@@ -233,7 +258,7 @@
     </div>
 </div>
 
-{# ── Modal Dinámico ── #}
+{# ── Modal Dinámico Añadir/Editar Empleado ── #}
 <div id="modalPersonal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
     <div class="bg-surface-container-lowest rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4 max-h-[90vh] overflow-y-auto">
 
@@ -302,10 +327,9 @@
                         Cancelar
                     </button>
                     
-                    {# Botón Eliminar secundario (solo visible al editar) #}
                     <a id="btnEliminarModal" href="#" 
-                       onclick="return confirm('¿Eliminar definitivamente a este empleado?')"
-                       class="hidden px-4 py-3 bg-error-container text-error font-bold rounded-xl hover:bg-error/10 transition-all text-sm flex items-center gap-2">
+                    onclick="return confirm('¿Eliminar definitivamente a este empleado?')"
+                    class="hidden px-4 py-3 bg-error-container text-error font-bold rounded-xl hover:bg-error/10 transition-all text-sm flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">delete</span>
                         Eliminar
                     </a>
@@ -315,6 +339,82 @@
                     class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-all shadow-md">
                     <span id="btnIcon" class="material-symbols-outlined text-sm">person_add</span>
                     <span id="btnText">Registrar Empleado</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ── PASO 4: Modal de Configuración y Creación de Turnos ── #}
+<div id="modal-turno" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full p-6 shadow-2xl border border-outline-variant/10">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold font-headline text-primary">Programar Turno Operativo</h3>
+            <button onclick="cerrarModalTurno()" class="p-1.5 rounded-full hover:bg-surface-container-high transition-colors">
+                <span class="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+        </div>
+        
+        <form method="post" action="{% url 'Personal:guardar_turno' %}" id="form-turno">
+            {% csrf_token %}
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Empleado Asignado *</label>
+                    <select name="empleado_id" required
+                            class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-sm focus:ring-2 focus:ring-primary/20 font-medium">
+                        {% for emp in base_qs|default:page_obj %}
+                        <option value="{{ emp.id }}">{{ emp.nombre_completo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Fecha del Turno *</label>
+                    <input type="date" name="fecha" required
+                        class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-sm focus:ring-2 focus:ring-primary/20 font-medium">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Bloque Horario *</label>
+                    <select name="tipo_turno" required 
+                            onchange="manejarCambioTurno(this.value)"
+                            class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-sm focus:ring-2 focus:ring-primary/20 font-medium cursor-pointer">
+                        <option value="matutino">Matutino (8:00 - 13:00)</option>
+                        <option value="vespertino">Vespertino (13:00 - 20:00)</option>
+                        <option value="medio_tiempo">Medio Tiempo (Personalizado)</option>
+                    </select>
+                </div>
+                
+                <div id="campos-horario" class="hidden grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Hora Inicio</label>
+                        <input type="time" name="hora_inicio" id="hora-inicio"
+                            class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-sm font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Hora Fin</label>
+                        <input type="time" name="hora_fin" id="hora-fin"
+                            class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-sm font-medium">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-2">Notas / Instrucciones Especiales</label>
+                    <textarea name="notas" rows="3" placeholder="Añade instrucciones de ser necesario..."
+                            class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-sm placeholder:text-stone-400 focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6 border-t border-outline-variant/10 pt-4">
+                <button type="button" onclick="cerrarModalTurno()"
+                        class="px-5 py-3 bg-surface-container-high rounded-xl text-sm font-bold text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit"
+                        class="flex-1 bg-primary text-on-primary py-3 rounded-xl font-bold hover:bg-primary-container hover:text-on-primary-container transition-all shadow-md flex items-center justify-center gap-2 text-sm">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    Guardar Turno
                 </button>
             </div>
         </form>
@@ -352,7 +452,6 @@
         btnText.innerText = "Guardar Cambios";
         btnIcon.innerText = "save";
         
-        // Configurar botón eliminar en el modal
         btnEliminarModal.href = `/personal/eliminar/${data.id}/`;
         btnEliminarModal.classList.remove('hidden');
 
@@ -369,10 +468,41 @@
 
         modal.classList.remove('hidden');
     }
+
+    /* SCRIPTS DEL PASO 4: CONTROLADORES DEL MODAL DE TURNOS */
+    function abrirModalTurno() {
+        document.getElementById('modal-turno').classList.remove('hidden');
+    }
+
+    function cerrarModalTurno() {
+        document.getElementById('modal-turno').classList.add('hidden');
+        document.getElementById('form-turno').reset();
+        document.getElementById('campos-horario').classList.add('hidden');
+    }
+
+    function manejarCambioTurno(tipo) {
+        const camposHorario = document.getElementById('campos-horario');
+        const horaInicio = document.getElementById('hora-inicio');
+        const horaFin = document.getElementById('hora-fin');
+        
+        if (tipo === 'medio_tiempo') {
+            camposHorario.classList.remove('hidden');
+            horaInicio.required = true;
+            horaFin.required = true;
+        } else {
+            camposHorario.classList.add('hidden');
+            horaInicio.required = false;
+            horaFin.required = false;
+        }
+    }
 </script>
 
 {% endwith %}
 {% endblock %}
+
+
+
+
 
 
 

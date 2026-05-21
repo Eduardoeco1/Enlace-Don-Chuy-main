@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block titulo %}Editar Perfil{% endblock %}
+
+{% block contenido %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <h1 class="text-3xl font-black text-on-surface">Editar Mi Perfil</h1>
+
+    {% if messages %}
+    <div class="space-y-3">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl text-sm font-bold flex items-center gap-2 
+            {% if message.tags == 'success' %} bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 
+            {% else %} bg-error/10 text-error border border-error/20 {% endif %}">
+            <span class="material-symbols-outlined text-xl">
+                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="bg-surface-container rounded-2xl p-8 space-y-6">
+        {% csrf_token %}
+        
+        <div class="flex items-center gap-6">
+            <div class="w-24 h-24 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden shrink-0">
+                {% if usuario.foto_perfil %}
+                {# Se agrega ?t={% now "U" %} para obligar al navegador a recargar la imagen rompiendo la caché #}
+                <img src="{{ usuario.foto_perfil.url }}?t={% now 'U' %}" class="w-full h-full object-cover">
+                {% else %}
+                <span class="material-symbols-outlined text-orange-600 text-4xl">person</span>
+                {% endif %}
+            </div>
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-on-surface mb-2">
+                    Cambiar Foto de Perfil
+                </label>
+                <input type="file" 
+                       name="foto_perfil" 
+                       accept="image/*"
+                       class="w-full px-4 py-2 rounded-lg border border-outline bg-surface text-on-surface text-sm focus:outline-none focus:border-primary">
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-bold text-on-surface">Nombre</label>
+            <input type="text" 
+                   name="first_name" 
+                   value="{{ usuario.first_name }}"
+                   class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-bold text-on-surface">Apellido</label>
+            <input type="text" 
+                   name="last_name" 
+                   value="{{ usuario.last_name }}"
+                   class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
+        </div>
+
+        <div class="space-y-2">
+            <label class="block text-sm font-bold text-on-surface">Email</label>
+            <input type="email" 
+                   name="email" 
+                   value="{{ usuario.email }}"
+                   class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
+        </div>
+
+        <div class="flex gap-4 pt-4">
+            <button type="submit" 
+                    class="flex-1 bg-primary text-on-primary py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors">
+                Guardar Cambios
+            </button>
+            <a href="{% url 'Perfil:perfil' %}"
+               class="px-8 py-3 bg-surface-container-high text-on-surface rounded-xl font-semibold hover:bg-surface-container-highest transition-colors text-center flex items-center justify-center">
+                Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+

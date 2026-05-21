@@ -1,251 +1,239 @@
-    {% extends 'base.html' %}
+{% extends 'base.html' %}
 
-    {% block titulo %}Entrada de Mercancía — Llama y Carbón{% endblock %}
-    {% block titulo_pagina %}Entrada de Mercancía{% endblock %}
+{% block titulo %}Entrada de Mercancía — Llama y Carbón{% endblock %}
+{% block titulo_pagina %}Entrada de Mercancía{% endblock %}
 
-    {% block estilos_extra %}
-    <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e0c0b2; border-radius: 10px; }
-        .glass-effect { backdrop-filter: blur(24px); background-color: rgba(246,243,242,0.8); }
-    </style>
-    {% endblock %}
+{% block estilos_extra %}
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #e0c0b2; border-radius: 10px; }
+    .glass-effect { backdrop-filter: blur(24px); background-color: rgba(246,243,242,0.8); }
+</style>
+{% endblock %}
 
-    {% block contenido %}
-    {% with seccion_activa='entrada' %}
+{% block contenido %}
+{% with seccion_activa='entrada' %}
 
-    <div class="max-w-6xl mx-auto space-y-8">
+<div class="max-w-6xl mx-auto space-y-8">
 
-        {# ── Mensajes de éxito / error ── #}
-        {% if messages %}
-            {% for message in messages %}
-            <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
-                {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
-                {% else %}bg-error-container text-on-error-container{% endif %}">
-                <span class="material-symbols-outlined">
-                    {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
-                </span>
-                {{ message }}
+    {# ── Mensajes de éxito / error ── #}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
+            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+            {% else %}bg-error-container text-on-error-container{% endif %}">
+            <span class="material-symbols-outlined">
+                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
+            </span>
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {# ── Encabezado ── #}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <span class="text-primary font-semibold tracking-widest text-xs uppercase mb-2 block">
+                Operaciones
+            </span>
+            <h2 class="text-4xl font-extrabold font-headline tracking-tight text-on-surface">
+                Entrada de Mercancía
+            </h2>
+            <p class="text-on-surface-variant mt-2 max-w-md">
+                Registra nuevos insumos y productos al inventario.
+                Los cambios se reflejarán automáticamente en el inventario y punto de venta.
+            </p>
+        </div>
+        <div class="bg-surface-container-low px-4 py-2 rounded-xl flex items-center gap-3">
+            <div class="h-10 w-10 bg-primary-fixed rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-primary">calendar_today</span>
             </div>
-            {% endfor %}
-        {% endif %}
-
-        {# ── Encabezado ── #}
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-                <span class="text-primary font-semibold tracking-widest text-xs uppercase mb-2 block">
-                    Operaciones
-                </span>
-                <h2 class="text-4xl font-extrabold font-headline tracking-tight text-on-surface">
-                    Entrada de Mercancía
-                </h2>
-                <p class="text-on-surface-variant mt-2 max-w-md">
-                    Registra nuevos insumos y productos al inventario central.
-                    Los cambios se reflejarán instantáneamente en todas las sucursales.
+                <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Sucursal</p>
+                <p class="text-sm font-bold text-on-surface">
+                    {% if sucursal_actual %}{{ sucursal_actual.nombre }}{% else %}Todas{% endif %}
                 </p>
             </div>
-            {# Fecha dinámica desde el contexto #}
-            <div class="bg-surface-container-low px-4 py-2 rounded-xl flex items-center gap-3">
-                <div class="h-10 w-10 bg-primary-fixed rounded-lg flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary">calendar_today</span>
-                </div>
-                <div>
-                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Fecha Actual</p>
-                    <p class="text-sm font-bold text-on-surface">{{ fecha_actual }}</p>
-                </div>
-            </div>
-        </div>
-
-        {# ── Layout principal ── #}
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-            {# ── Formulario ── #}
-            <section class="lg:col-span-8 bg-surface-container-lowest rounded-full p-8 md:p-12">
-                <form method="post" action="{% url 'EntradaMercancia:entrada' %}" class="space-y-10">
-                    {% csrf_token %}
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-
-                        {# Producto #}
-                        <div class="space-y-3">
-                            <label class="block text-sm font-bold text-primary font-headline">
-                                {{ form.producto.label }}
-                            </label>
-                            <div class="relative">
-                                {{ form.producto }}
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
-                                    expand_more
-                                </span>
-                            </div>
-                            {% if form.producto.errors %}
-                                <p class="text-error text-xs">{{ form.producto.errors|join:", " }}</p>
-                            {% endif %}
-                        </div>
-
-                        {# Cantidad #}
-                        <div class="space-y-3">
-                            <label class="block text-sm font-bold text-primary font-headline text-right">
-                                {{ form.cantidad.label }}
-                            </label>
-                            <div class="flex gap-4">
-                                {{ form.cantidad }}
-                                {{ form.unidad }}
-                            </div>
-                            {% if form.cantidad.errors %}
-                                <p class="text-error text-xs">{{ form.cantidad.errors|join:", " }}</p>
-                            {% endif %}
-                        </div>
-
-                        {# Fecha de entrada #}
-                        <div class="space-y-3">
-                            <label class="block text-sm font-bold text-primary font-headline">
-                                {{ form.fecha_entrada.label }}
-                            </label>
-                            {{ form.fecha_entrada }}
-                            {% if form.fecha_entrada.errors %}
-                                <p class="text-error text-xs">{{ form.fecha_entrada.errors|join:", " }}</p>
-                            {% endif %}
-                        </div>
-
-                        {# Sucursal de destino #}
-                        <div class="space-y-3">
-                            <label class="block text-sm font-bold text-primary font-headline">
-                                {{ form.sucursal.label }}
-                            </label>
-                            <div class="relative">
-                                {{ form.sucursal }}
-                                <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">
-                                    store
-                                </span>
-                            </div>
-                            {% if form.sucursal.errors %}
-                                <p class="text-error text-xs">{{ form.sucursal.errors|join:", " }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {# Notas #}
-                    <div class="space-y-3">
-                        <label class="block text-sm font-bold text-primary font-headline">
-                            {{ form.notas.label }}
-                        </label>
-                        {{ form.notas }}
-                    </div>
-
-                    {# Botones #}
-                    <div class="pt-6 border-t border-outline-variant/10 flex items-center justify-between">
-                        <button class="px-8 py-4 text-on-surface-variant font-bold hover:bg-surface-container-high rounded-xl transition-all"
-                            type="reset">
-                            Limpiar Formulario
-                        </button>
-                        <button class="bg-primary hover:bg-primary-container text-on-primary px-12 py-4 rounded-xl font-bold flex items-center gap-3 transition-transform hover:scale-[1.02]"
-                            type="submit">
-                            <span class="material-symbols-outlined">verified</span>
-                            Confirmar Entrada
-                        </button>
-                    </div>
-                </form>
-            </section>
-
-            {# ── Panel lateral ── #}
-            <aside class="lg:col-span-4 space-y-6">
-
-                {# Últimas entradas dinámicas #}
-                <div class="bg-surface-container-low rounded-xl p-6">
-                    <h3 class="text-sm font-extrabold text-on-surface uppercase tracking-widest mb-6">
-                        Últimas Entradas
-                    </h3>
-                    <div class="space-y-4">
-                        {% for entrada in ultimas_entradas %}
-                        <div class="flex items-center gap-4 p-3 bg-surface-container-lowest rounded-lg">
-                            <div class="h-10 w-10 flex-shrink-0 bg-tertiary-fixed rounded-lg flex items-center justify-center">
-                                <span class="material-symbols-outlined text-tertiary">inventory_2</span>
-                            </div>
-                            <div class="flex-1 overflow-hidden">
-                                <p class="text-xs font-bold text-on-surface truncate">{{ entrada.producto }}</p>
-                                <p class="text-[10px] text-on-surface-variant">
-                                    {{ entrada.fecha_entrada }} • {{ entrada.cantidad }} {{ entrada.unidad }}
-                                </p>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <div class="py-4 text-center">
-                            <span class="material-symbols-outlined text-outline text-3xl">inbox</span>
-                            <p class="text-xs text-on-surface-variant mt-2">Sin entradas registradas aún.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <a href="#"
-                    class="block w-full mt-6 py-3 text-xs font-bold text-primary text-center border border-primary/20 rounded-lg hover:bg-primary/5 transition-colors">
-                        Ver historial completo
-                    </a>
-                </div>
-
-                {# Imagen decorativa #}
-                <div class="relative h-64 rounded-xl overflow-hidden group">
-                    <img alt="Parrilla Artesanal"
-                        class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHdLEBFC5rBghqfh_MObdjwQ7wt5DDdt6DAy211vkoxljoYLMQUbjJ7-m9dSlu2DsAokc9YPx4ryFBTNe7Vo03EstcO6pXHuX0isGqNiMsWx6nOCZvaJ1kOkpG6ecnjuu3lHa2XrOqsh_yWeu3CNVH7WNv561IJu_D4Umeg8L6Dctmbg7iS_9xV2Wx_PXp_wfPl_xPfbHzojRyTN6CK_NBf2V0G-1OUy6SgKO8Hdwd5oQ2ucBoMOWIVwuPMlIyVw6XiRo8-bkXmhB-" />
-                    <div class="absolute inset-0 bg-gradient-to-t from-on-surface to-transparent opacity-60"></div>
-                    <div class="absolute bottom-4 left-4 right-4">
-                        <p class="text-white text-xs font-bold uppercase tracking-widest opacity-80">Calidad Artesanal</p>
-                        <p class="text-white font-headline font-bold text-lg leading-tight mt-1">
-                            Controlamos cada insumo desde el origen.
-                        </p>
-                    </div>
-                </div>
-
-                {# Alerta de capacidad #}
-                <div class="bg-primary/5 rounded-xl p-6 border-l-4 border-primary">
-                    <div class="flex gap-4">
-                        <span class="material-symbols-outlined text-primary">inventory</span>
-                        <div class="space-y-1">
-                            <p class="text-xs font-bold text-on-surface">Capacidad de Almacén</p>
-                            <p class="text-xs text-on-surface-variant leading-relaxed">
-                                La Sucursal Centro está al 85% de capacidad.
-                                Considere distribuir entradas nuevas al Almacén Norte.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="mt-4 bg-surface-container-high h-1.5 w-full rounded-full overflow-hidden">
-                        <div class="bg-primary h-full w-[85%] rounded-full"></div>
-                    </div>
-                </div>
-
-            </aside>
         </div>
     </div>
 
-    {# ── BottomNav Mobile ── #}
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-effect p-3 flex justify-around items-center border-t border-outline-variant/20 z-50">
-        <a class="flex flex-col items-center gap-1 p-2 text-stone-500"
-        href="{% url 'PanelControl:panel' %}">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span class="text-[10px] font-bold">Panel</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 p-2 text-stone-500" href="#">
-            <span class="material-symbols-outlined">inventory_2</span>
-            <span class="text-[10px] font-bold">Inv.</span>
-        </a>
-        {# Entrada activa en mobile #}
-        <a class="flex flex-col items-center gap-1 p-2 text-primary"
-        href="{% url 'EntradaMercancia:entrada' %}">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">input</span>
-            <span class="text-[10px] font-bold">Entrada</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 p-2 text-stone-500"
-        href="{% url 'CierreCaja:cierre' %}">
-            <span class="material-symbols-outlined">payments</span>
-            <span class="text-[10px] font-bold">Caja</span>
-        </a>
-        <a class="flex flex-col items-center gap-1 p-2 text-stone-500"
-        href="{% url 'Reportes:reporte' %}">
-            <span class="material-symbols-outlined">assessment</span>
-            <span class="text-[10px] font-bold">Reportes</span>
-        </a>
-    </nav>
+    {# ── Layout principal ── #}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-    {% endwith %}
-    {% endblock %}
+        {# ── Formulario ── #}
+        <section class="lg:col-span-8 bg-surface-container-lowest rounded-2xl p-8 md:p-12">
+            <form method="post" class="space-y-8">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    {# Producto #}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-primary font-headline">
+                            Nombre del Producto *
+                        </label>
+                        {{ form.producto }}
+                        {% if form.producto.errors %}
+                            <p class="text-error text-xs">{{ form.producto.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# Categoría - NUEVO CAMPO #}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-primary font-headline">
+                            Categoría *
+                        </label>
+                        {{ form.categoria }}
+                        {% if form.categoria.errors %}
+                            <p class="text-error text-xs">{{ form.categoria.errors|join:", " }}</p>
+                        {% endif %}
+                        <p class="text-xs text-on-surface-variant">
+                            Selecciona la categoría del producto
+                        </p>
+                    </div>
+
+                    {# Cantidad #}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-primary font-headline">
+                            Cantidad *
+                        </label>
+                        {{ form.cantidad }}
+                        {% if form.cantidad.errors %}
+                            <p class="text-error text-xs">{{ form.cantidad.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# Unidad #}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-primary font-headline">
+                            Unidad de Medida *
+                        </label>
+                        {{ form.unidad }}
+                        {% if form.unidad.errors %}
+                            <p class="text-error text-xs">{{ form.unidad.errors|join:", " }}</p>
+                        {% endif %}
+                        <p class="text-xs text-on-surface-variant">
+                            KG, UNID, LTS, etc.
+                        </p>
+                    </div>
+
+                    {# Fecha de entrada #}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-primary font-headline">
+                            Fecha de Entrada *
+                        </label>
+                        {{ form.fecha_entrada }}
+                        {% if form.fecha_entrada.errors %}
+                            <p class="text-error text-xs">{{ form.fecha_entrada.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# Sucursal de destino #}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-bold text-primary font-headline">
+                            Sucursal de Destino *
+                        </label>
+                        {{ form.sucursal }}
+                        {% if form.sucursal.errors %}
+                            <p class="text-error text-xs">{{ form.sucursal.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Notas #}
+                <div class="space-y-2">
+                    <label class="block text-sm font-bold text-primary font-headline">
+                        Notas Adicionales
+                    </label>
+                    {{ form.notas }}
+                </div>
+
+                {# Botones #}
+                <div class="pt-6 border-t border-outline-variant/10 flex items-center justify-between">
+                    <button class="px-8 py-4 text-on-surface-variant font-bold hover:bg-surface-container-high rounded-xl transition-all"
+                        type="reset">
+                        Limpiar Formulario
+                    </button>
+                    <button class="bg-primary hover:bg-primary-container text-on-primary px-12 py-4 rounded-xl font-bold flex items-center gap-3 transition-transform hover:scale-[1.02]"
+                        type="submit">
+                        <span class="material-symbols-outlined">verified</span>
+                        Confirmar Entrada
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        {# ── Panel lateral ── #}
+        <aside class="lg:col-span-4 space-y-6">
+
+            {# Últimas entradas #}
+            <div class="bg-surface-container-low rounded-xl p-6">
+                <h3 class="text-sm font-extrabold text-on-surface uppercase tracking-widest mb-6">
+                    Últimas Entradas
+                </h3>
+                <div class="space-y-4">
+                    {% for entrada in entradas %}
+                    <div class="flex items-center gap-4 p-3 bg-surface-container-lowest rounded-lg">
+                        <div class="h-10 w-10 flex-shrink-0 bg-tertiary-fixed rounded-lg flex items-center justify-center">
+                            <span class="material-symbols-outlined text-tertiary">inventory_2</span>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="text-xs font-bold text-on-surface truncate">{{ entrada.producto }}</p>
+                            <p class="text-[10px] text-on-surface-variant">
+                                {{ entrada.get_categoria_display }} • {{ entrada.cantidad }} {{ entrada.unidad }}
+                            </p>
+                            <p class="text-[10px] text-on-surface-variant">
+                                {{ entrada.fecha_entrada|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        {% if entrada.sincronizado %}
+                        <span class="text-secondary text-xs">✓</span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="py-4 text-center">
+                        <span class="material-symbols-outlined text-outline text-3xl">inbox</span>
+                        <p class="text-xs text-on-surface-variant mt-2">Sin entradas registradas aún.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {# Información #}
+            <div class="bg-secondary-container/30 rounded-xl p-6 border-l-4 border-secondary">
+                <div class="flex gap-4">
+                    <span class="material-symbols-outlined text-secondary">info</span>
+                    <div class="space-y-1">
+                        <p class="text-xs font-bold text-on-surface">Sincronización Automática</p>
+                        <p class="text-xs text-on-surface-variant leading-relaxed">
+                            Al registrar una entrada, el stock se actualizará automáticamente en el Inventario
+                            y los productos estarán disponibles inmediatamente en el Punto de Venta.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {# Imagen decorativa #}
+            <div class="relative h-64 rounded-xl overflow-hidden group">
+                <img alt="Parrilla Artesanal"
+                    class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHdLEBFC5rBghqfh_MObdjwQ7wt5DDdt6DAy211vkoxljoYLMQUbjJ7-m9dSlu2DsAokc9YPx4ryFBTNe7Vo03EstcO6pXHuX0isGqNiMsWx6nOCZvaJ1kOkpG6ecnjuu3lHa2XrOqsh_yWeu3CNVH7WNv561IJu_D4Umeg8L6Dctmbg7iS_9xV2Wx_PXp_wfPl_xPfbHzojRyTN6CK_NBf2V0G-1OUy6SgKO8Hdwd5oQ2ucBoMOWIVwuPMlIyVw6XiRo8-bkXmhB-" />
+                <div class="absolute inset-0 bg-gradient-to-t from-on-surface to-transparent opacity-60"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                    <p class="text-white text-xs font-bold uppercase tracking-widest opacity-80">Calidad Artesanal</p>
+                    <p class="text-white font-headline font-bold text-lg leading-tight mt-1">
+                        Controlamos cada insumo desde el origen.
+                    </p>
+                </div>
+            </div>
+
+        </aside>
+    </div>
+</div>
+
+{% endwith %}
+{% endblock %}
+
+
 

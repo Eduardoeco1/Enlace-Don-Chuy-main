@@ -1,19 +1,7 @@
 from django.db import models
-# CORRECCIÓN: Importar settings para referenciar el modelo de usuario activo
 from django.conf import settings
 from django.utils import timezone
-
-class Sucursal(models.Model):
-    nombre    = models.CharField(max_length=100, verbose_name='Nombre')
-    direccion = models.TextField(blank=True, verbose_name='Dirección')
-    activa    = models.BooleanField(default=True)
-
-    class Meta:
-        verbose_name = 'Sucursal'
-        verbose_name_plural = 'Sucursales'
-
-    def __str__(self):
-        return self.nombre
+from Sucursales.models import Sucursal  # Importación unificada para el sistema multisucursal
 
 class MetaSemanal(models.Model):
     objetivo_monto = models.DecimalField(max_digits=12, decimal_places=2, verbose_name='Objetivo ($)')
@@ -35,12 +23,11 @@ class CierreCaja(models.Model):
         ('nocturno',   'Turno Nocturno'),
     ]
     
-    # CORRECCIÓN: Cambiar 'User' por 'settings.AUTH_USER_MODEL'
-    # Se mantiene related_name para evitar conflictos de acceso inverso
-    responsable    = models.ForeignKey(
+    responsable = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.SET_NULL, 
         null=True, 
+        blank=True,
         verbose_name='Responsable',
         related_name='reportes_caja'
     )
@@ -77,6 +64,6 @@ class Insumo(models.Model):
 
     def __str__(self):
         return f"{self.nombre} — Real: {self.stock_fisico} / Esperado: {self.stock_esperado} {self.unidad}"
-    
 
-    
+
+

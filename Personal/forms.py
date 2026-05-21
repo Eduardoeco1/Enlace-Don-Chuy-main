@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Empleado, Asistencia
+from .models import Empleado, Asistencia, Justificante
 from Inventario.models import Sucursal
 
 # Estilos de Enlace Don Chuy
@@ -12,7 +12,7 @@ SELECT_CLS_ASIST = 'w-full bg-surface-container-high border-none rounded-xl py-3
 User = get_user_model()
 
 class EmpleadoForm(forms.Form):
-    # Nuevo campo de Usuario independiente
+    """Formulario para la creación de nuevos empleados y sus usuarios."""
     username = forms.CharField(
         label='Usuario',
         widget=forms.TextInput(attrs={'class': INPUT, 'placeholder': 'Nombre de usuario'})
@@ -60,14 +60,12 @@ class EmpleadoForm(forms.Form):
     )
 
     def clean_username(self):
-        """Valida que el nombre de usuario no esté duplicado."""
         username = self.cleaned_data.get('username')
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError('Este nombre de usuario ya está en uso.')
         return username
 
     def clean_email(self):
-        """Valida que el correo sea único."""
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError('Ya existe un usuario registrado con este email.')
@@ -97,42 +95,54 @@ class MarcarSalidaForm(forms.Form):
 
 
 class JustificanteForm(forms.ModelForm):
-    """Formulario para subir justificante."""
+    """Formulario para añadir notas a una asistencia (sin archivo directo)."""
     class Meta:
         model  = Asistencia
-        fields = ['justificante', 'notas']
+        fields = ['notas'] # Corregido: Se eliminó 'justificante' que no existe en el modelo
         widgets = {
             'notas': forms.Textarea(attrs={
                 'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary resize-none font-body',
                 'rows': 3,
-                'placeholder': 'Motivo de la ausencia...',
+                'placeholder': 'Motivo de la ausencia o notas adicionales...',
             }),
         }
 
 
 class AsistenciaAdminForm(forms.ModelForm):
-    """Formulario para que el admin registre/edite asistencia."""
+    """Formulario para que el admin registre o edite asistencia de forma completa."""
     class Meta:
         model  = Asistencia
         fields = ['empleado', 'fecha', 'hora_entrada', 'hora_salida',
-                  'estado', 'es_dia_descanso', 'justificante', 'notas']
+                  'estado', 'es_dia_descanso', 'notas'] # Corregido: Se eliminó 'justificante'
         widgets = {
             'empleado': forms.Select(attrs={'class': SELECT_CLS_ASIST}),
-            'fecha':    forms.DateInput(attrs={
-                'class': INPUT_TIME, 'type': 'date'
-            }),
-            'hora_entrada': forms.TimeInput(attrs={
-                'class': INPUT_TIME, 'type': 'time'
-            }),
-            'hora_salida': forms.TimeInput(attrs={
-                'class': INPUT_TIME, 'type': 'time'
-            }),
+            'fecha': forms.DateInput(attrs={'class': INPUT_TIME, 'type': 'date'}),
+            'hora_entrada': forms.TimeInput(attrs={'class': INPUT_TIME, 'type': 'time'}),
+            'hora_salida': forms.TimeInput(attrs={'class': INPUT_TIME, 'type': 'time'}),
             'estado': forms.Select(attrs={'class': SELECT_CLS_ASIST}),
-            'notas':  forms.Textarea(attrs={
+            'notas': forms.Textarea(attrs={
                 'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary resize-none font-body',
                 'rows': 2,
             }),
         }
+
+
+class JustificanteCreateForm(forms.ModelForm):
+    """Formulario para que los empleados suban sus justificantes oficiales (con archivo)."""
+    class Meta:
+        model = Justificante
+        fields = ['fecha', 'motivo', 'descripcion', 'archivo']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date', 'class': INPUT}),
+            'motivo': forms.Select(attrs={'class': SELECT}),
+            'descripcion': forms.Textarea(attrs={
+                'rows': 4, 
+                'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary resize-none font-body',
+                'placeholder': 'Detalla el motivo de tu ausencia...'
+            }),
+            'archivo': forms.FileInput(attrs={'class': 'w-full text-on-surface'}),
+        }
+
 
 
 

@@ -8,27 +8,44 @@
 
 <div class="max-w-5xl mx-auto space-y-8">
 
-    {# ── Tarjeta de cabecera ── #}
+    {# ── Tarjeta de cabecera dinámica ── #}
     <section class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 p-8 flex flex-col md:flex-row items-center md:items-center md:justify-between gap-6">
         <div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
             <div class="relative">
                 <div class="w-28 h-28 rounded-full border-4 border-primary-fixed overflow-hidden shadow-lg bg-surface-container-high flex items-center justify-center">
-                    <span class="material-symbols-outlined text-6xl text-on-surface-variant">person</span>
+                    {% if request.user.foto_perfil %}
+                        <img src="{{ request.user.foto_perfil.url }}?v={{ request.user.id }}" 
+                             class="w-full h-full object-cover"
+                             alt="Foto de perfil"
+                             id="avatar-central">
+                    {% else %}
+                        <span class="material-symbols-outlined text-6xl text-on-surface-variant">person</span>
+                    {% endif %}
                 </div>
                 <div class="absolute bottom-1 right-1 bg-primary text-on-primary p-2 rounded-full shadow-md">
                     <span class="material-symbols-outlined text-sm">photo_camera</span>
                 </div>
             </div>
             <div>
-                <h2 class="text-3xl font-extrabold text-primary font-headline">{{ nombre_completo }}</h2>
-                <p class="text-on-surface-variant font-semibold uppercase tracking-wider text-sm mt-1">
-                    Administrador Central
+                <h2 class="text-3xl font-extrabold text-primary font-headline" id="nombre-usuario">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </h2>
+                <p class="text-on-surface-variant font-semibold uppercase tracking-wider text-sm mt-1" id="rol-usuario">
+                    {% if request.user.is_superuser or request.user.rol == 'duena' %}
+                        DUEÑA - ACCESO GLOBAL
+                    {% elif request.user.rol == 'gerente' %}
+                        GERENTE - {{ request.user.empleado.sucursal.nombre|default:"Sin Sucursal" }}
+                    {% else %}
+                        EMPLEADO - {{ request.user.empleado.sucursal.nombre|default:"Sin Sucursal" }}
+                    {% endif %}
                 </p>
                 <div class="mt-2 flex items-center justify-center md:justify-start gap-4 text-stone-500 text-sm">
+                    {% if request.user.empleado.sucursal %}
                     <span class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-xs">location_on</span>
-                        Sucursal Principal
+                        <span id="sucursal-usuario">{{ request.user.empleado.sucursal.nombre }}</span>
                     </span>
+                    {% endif %}
                     <span class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-xs">verified_user</span>
                         Activo
@@ -36,10 +53,10 @@
                 </div>
             </div>
         </div>
-        <button class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
+        <a href="{% url 'Perfil:editar_perfil' %}" class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
             <span class="material-symbols-outlined text-sm">edit</span>
             Editar Perfil
-        </button>
+        </a>
     </section>
 
     {# ── Grid: Datos personales + Seguridad ── #}
@@ -56,7 +73,7 @@
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
                         Nombre de usuario
                     </label>
-                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high">
+                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high" id="username-display">
                         {{ request.user.username }}
                     </p>
                 </div>
@@ -64,8 +81,8 @@
                     <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
                         Email
                     </label>
-                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high">
-                        {{ email }}
+                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high" id="email-display">
+                        {{ request.user.email|default:"No registrado" }}
                     </p>
                 </div>
                 <div>
@@ -73,7 +90,7 @@
                         Fecha de registro
                     </label>
                     <p class="text-on-surface font-medium py-2 border-b border-surface-container-high">
-                        {{ fecha_ingreso }}
+                        {{ request.user.date_joined|date:"d/m/Y" }}
                     </p>
                 </div>
                 <div>
@@ -194,6 +211,4 @@
 </div>
 {% endwith %}
 {% endblock %}
-
-
 
