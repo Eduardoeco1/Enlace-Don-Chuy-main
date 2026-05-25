@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Llama y Carbón - Iniciar Sesión</title>
+    <title>Enlace Don Chuy - Iniciar Sesión</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Work+Sans:wght@300..700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
@@ -109,7 +109,7 @@
         <!-- Left Side: Visual Narrative -->
         <div class="hidden md:flex flex-col justify-between p-12 rustic-gradient text-on-primary">
             <div>
-                <span class="font-headline font-black text-2xl tracking-widest text-primary-fixed">LLAMA Y CARBÓN</span>
+                <span class="font-headline font-black text-2xl tracking-widest text-primary-fixed">Enlace Don Chuy</span>
                 <div class="mt-2 w-12 h-1 bg-primary-container"></div>
             </div>
             <div class="space-y-6">
@@ -124,32 +124,29 @@
                 <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
                     <span class="material-symbols-outlined text-surface">restaurant_menu</span>
                 </div>
-                <span class="font-label text-sm uppercase tracking-widest opacity-60">Est. 2024</span>
+                <span class="font-label text-sm uppercase tracking-widest opacity-60"></span>
             </div>
         </div>
 
         <!-- Right Side: Interaction Canvas -->
         <div class="p-8 md:p-16 flex flex-col justify-center">
             <div class="mb-10 md:hidden text-center">
-                <span class="font-headline font-black text-xl tracking-widest text-primary uppercase">Llama y Carbón</span>
+                <span class="font-headline font-black text-xl tracking-widest text-primary uppercase">Enlace Don Chuy</span>
             </div>
 
             <header class="mb-8">
                 <h2 class="font-display text-headline-md font-bold text-on-surface mb-2">Bienvenido de nuevo</h2>
                 <p class="text-on-surface-variant font-body">Ingrese sus credenciales para acceder al panel de gestión.</p>
             </header>
+                  {# DJANGO: Bloque de mensajes de error #}
+            {% if login_error %}
+    <div class="mb-6 px-4 py-3 rounded-lg bg-red-100 text-red-700 font-body text-sm flex items-center gap-2 border border-red-200">
+        <span class="material-symbols-outlined text-base">error</span>
+        {{ login_error }}
+    </div>
+{% endif %}
 
-            {# DJANGO: Bloque de mensajes de error #}
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="mb-6 px-4 py-3 rounded-lg bg-error-container text-error font-body text-sm flex items-center gap-2">
-                        <span class="material-symbols-outlined text-base">error</span>
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            {# DJANGO: method="post" y action apunta a la URL del login #}
+            {# DJANGO: method="post" y action apunta a la URL del login #}   
             <form method="post" action="{% url 'login' %}" class="space-y-6">
                 {% csrf_token %} {# DJANGO: Token de seguridad obligatorio #}
 
@@ -167,7 +164,7 @@
                             class="w-full pl-12 pr-4 py-4 bg-surface-container-high rounded-lg focus:bg-surface-container-lowest focus:ring-0 focus:border-b-2 border-transparent border-b-primary transition-all duration-200 text-on-surface font-body outline-none"
                             id="username"
                             name="username"
-                            placeholder="admin@llamaycarbon.com"
+                            placeholder="admin@enlacedonchuy.com"
                             type="text"
                             value="{{ username_input|default:'' }}" {# DJANGO: Conserva el usuario escrito si hay error #}
                             autocomplete="username"
@@ -225,31 +222,8 @@
                 </button>
             </form>
 
-            <!-- Footer Notes -->
-            <footer class="mt-12 pt-8 border-t border-outline-variant/20">
-                <div class="flex flex-col sm:flex-row justify-between gap-4 text-xs font-label text-on-surface-variant opacity-70">
-                    <p>© 2024 Llama y Carbón. Todos los derechos reservados.</p>
-                    <div class="flex gap-4">
-                        <a class="hover:text-primary transition-colors" href="#">Privacidad</a>
-                        <a class="hover:text-primary transition-colors" href="#">Soporte</a>
-                    </div>
-                </div>
-            </footer>
-        </div>
-    </main>
+   
 
-    <!-- Decorative Smoked Glass Element -->
-    <div class="fixed bottom-8 right-8 z-20 pointer-events-none hidden lg:block">
-        <div class="p-6 glass-panel rounded-full border border-surface-container-highest shadow-xl flex items-center gap-4">
-            <div class="w-12 h-12 bg-primary-fixed rounded-full flex items-center justify-center text-primary">
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
-            </div>
-            <div>
-                <p class="font-headline font-bold text-sm leading-none">Sistema Activo</p>
-                <p class="font-body text-xs text-on-surface-variant">Servidor Principal: Lima, PE</p>
-            </div>
-        </div>
-    </div>
 
     <script>
         // Toggle visibilidad de contraseña

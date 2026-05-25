@@ -9,7 +9,7 @@ class EntradaInsumo(models.Model):
     para sincronización limpia con Inventario.
     """
     
-    # Catálogo de Insumos Fijos para el Dropdown (Segúna catálogo visual de Llama y Carbón)
+    # Catálogo de Insumos Fijos para el Dropdown (Segúna catálogo visual de Enlace Don Chuy)
     PRODUCTOS_CHOICES = [
         ('Pollo', 'Pollo'),
         ('Cabeza', 'Cabeza'),

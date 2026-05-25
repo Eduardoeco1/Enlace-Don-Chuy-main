@@ -77,6 +77,7 @@ def procesar_venta(request):
     """
     try:
         data = json.loads(request.body)
+        tipo_servicio = data.get('tipo', 'llevar')
         metodo_pago = data.get('metodo', 'efectivo')
         items = data.get('items', [])
         
@@ -98,13 +99,13 @@ def procesar_venta(request):
             ticket = f'#{num:04d}'
 
             pedido = Pedido.objects.create(
-                ticket=ticket,
-                tipo=metodo_pago,
-                estado='procesado',
-                cajero=request.user,
-                sucursal=sucursal,
-            )
-
+            ticket=ticket,
+            tipo=tipo_servicio,
+            metodo_pago=metodo_pago,
+            estado='procesado',
+            cajero=request.user,
+            sucursal=sucursal,
+        )
             subtotal = Decimal('0')
 
             for item in items:

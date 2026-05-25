@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Gestión de Personal — Llama y Carbón{% endblock %}
+{% block titulo %}Gestión de Personal — Enlace Don Chuy{% endblock %}
 {% block titulo_pagina %}Gestión de Personal{% endblock %}
 
 {% block contenido %}
@@ -435,15 +435,24 @@
     }
 
     function prepararModalAñadir() {
-        form.reset();
-        form.action = urlAñadir;
-        modalTitle.innerText = "Añadir Personal";
-        btnText.innerText = "Registrar Empleado";
-        btnIcon.innerText = "person_add";
-        btnEliminarModal.classList.add('hidden');
-        document.getElementById('passwordLabel').innerText = "Contraseña";
-        modal.classList.remove('hidden');
-    }
+    form.reset();
+
+    form.action = urlAñadir;
+    modalTitle.innerText = "Añadir Personal";
+    btnText.innerText = "Registrar Empleado";
+    btnIcon.innerText = "person_add";
+    btnEliminarModal.classList.add('hidden');
+    document.getElementById('passwordLabel').innerText = "Contraseña";
+
+    form.querySelector('[name="first_name"]').value = "";
+    form.querySelector('[name="last_name"]').value = "";
+    form.querySelector('[name="username"]').value = "";
+    form.querySelector('[name="email"]').value = "";
+    form.querySelector('[name="password"]').value = "";
+    form.querySelector('[name="telefono"]').value = "";
+
+    modal.classList.remove('hidden');
+}
 
     function abrirModalEdicion(data) {
         form.reset();

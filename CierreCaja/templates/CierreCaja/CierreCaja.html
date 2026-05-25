@@ -1,176 +1,271 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Cierre de Caja - Llama y Carbón{% endblock %}
-
+{% block titulo %}Cierre de Caja - Enlace Don Chuy{% endblock %}
 {% block titulo_pagina %}Cierre de Caja e Historial de Turnos{% endblock %}
 
 {% block contenido %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 font-['Work_Sans']">
-    
-    <div class="lg:col-span-1 space-y-6">
-        
-        <div class="bg-surface-container rounded-xl p-4 shadow-sm border border-outline-variant/10">
-            <label class="block text-sm font-semibold text-on-surface mb-2">
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="space-y-6">
+
+        <!-- FILTRO -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-bold text-[#904800] mb-4">
                 Filtrar por Turno
-            </label>
-            <select id="selector-turno" 
-                    class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:ring-2 focus:ring-primary/20 font-semibold cursor-pointer"
-                    onchange="filtrarPorTurno(this.value)">
-                <option value="todos" {% if turno_seleccionado == 'todos' %}selected{% endif %}>
-                    🌎 Todos los Turnos
-                </option>
-                <option value="matutino" {% if turno_seleccionado == 'matutino' %}selected{% endif %}>
-                    🌅 Matutino (8:00 - 13:00)
-                </option>
-                <option value="vespertino" {% if turno_seleccionado == 'vespertino' %}selected{% endif %}>
-                    set_turno Vespertino (13:00 - 20:00)
-                </option>
+            </h3>
+
+            <select
+                name="filtro_turno"
+                class="w-full rounded-2xl border border-[#904800]/40 px-4 py-3 font-semibold focus:ring-2 focus:ring-[#904800] focus:outline-none"
+            >
+                <option value="">🌎 Todos los Turnos</option>
+                <option value="matutino">🌅 Matutino (8:00 - 13:00)</option>
+                <option value="vespertino">🌙 Vespertino (13:00 - 20:00)</option>
             </select>
         </div>
 
-        <div class="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/20 shadow-sm">
-            <h3 class="text-base font-bold text-orange-900 mb-4 flex items-center gap-2 font-['Manrope']">
-                <span class="material-symbols-outlined text-xl">payments</span>
-                Registrar Corte de Caja
-            </h3>
-            
-            <form method="post" action="" class="space-y-4">
+        <!-- REGISTRAR CORTE -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+
+            <h2 class="text-2xl font-bold text-[#904800] mb-6">
+                💳 Registrar Corte de Caja
+            </h2>
+
+            <form method="POST" class="space-y-6">
                 {% csrf_token %}
-                
+
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant mb-1">Turno de Trabajo</label>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        Turno de Trabajo
+                    </label>
+
                     {{ form.turno }}
-                    {% if form.turno.errors %}
-                        <p class="text-xs text-error mt-1">{{ form.turno.errors.0 }}</p>
-                    {% endif %}
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant mb-1">Efectivo Real en Caja ($)</label>
-                    {{ form.efectivo_real }}
-                    {% if form.efectivo_real.errors %}
-                        <p class="text-xs text-error mt-1">{{ form.efectivo_real.errors.0 }}</p>
-                    {% endif %}
-                </div>
+                    <label class="block text-sm font-bold text-gray-700 mb-3">
+                        Efectivo Real en Caja ($)
+                    </label>
 
-                <div>
-                    <label class="block text-xs font-bold text-on-surface-variant mb-1">Notas / Observaciones del Turno</label>
-                    {{ form.notas }}
-                    {% if form.notas.errors %}
-                        <p class="text-xs text-error mt-1">{{ form.notas.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <button type="submit" 
-                        class="w-full py-3 bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 mt-2">
-                    <span class="material-symbols-outlined text-sm">lock</span>
-                    Procesar y Cerrar Turno
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <div class="lg:col-span-2 space-y-6">
-        
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div class="p-5 bg-surface-container rounded-2xl border border-outline-variant/10 shadow-sm">
-                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Efectivo Esperado</p>
-                <h4 class="text-xl font-extrabold text-stone-900 mt-1">${{ total_esperado|default:"0.00" }}</h4>
-                <p class="text-[10px] text-stone-400 mt-1">Fondo (+${{ fondo_inicial }}) + Ventas</p>
-            </div>
-            <div class="p-5 bg-surface-container rounded-2xl border border-outline-variant/10 shadow-sm">
-                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Ventas con Tarjeta</p>
-                <h4 class="text-xl font-extrabold text-stone-900 mt-1">${{ ventas_tarjeta|default:"0.00" }}</h4>
-                <p class="text-[10px] text-stone-400 mt-1">Montos validados en terminal</p>
-            </div>
-            <div class="p-5 bg-surface-container rounded-2xl border border-outline-variant/10 shadow-sm">
-                <p class="text-xs font-bold text-stone-500 uppercase tracking-wider">Plataformas / Delivery</p>
-                <h4 class="text-xl font-extrabold text-stone-900 mt-1">${{ ventas_delivery|default:"0.00" }}</h4>
-                <p class="text-[10px] text-stone-400 mt-1">Apps y transferencias registradas</p>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-stone-100 flex justify-between items-center bg-stone-50/50">
-                <h3 class="font-bold text-sm text-stone-900 font-['Manrope'] flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary text-lg">history_toggle_off</span>
-                    Bitácora de Auditoría del Turno
-                </h3>
-                <span class="text-[10px] bg-stone-200/60 text-stone-600 font-bold px-2 py-0.5 rounded-full">Hoy</span>
-            </div>
-            
-            <div class="divide-y divide-stone-100 max-h-64 overflow-y-auto">
-                {% for act in actividades %}
-                <div class="p-4 flex items-center justify-between gap-4 text-xs">
-                    <div class="flex items-center gap-3">
-                        <div class="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0
-                            {% if act.type == 'entrada' %}bg-blue-50 text-blue-600
-                            {% elif act.type == 'retiro' %}bg-orange-50 text-orange-600
-                            {% else %}bg-green-50 text-green-600{% endif %}">
-                            <span class="material-symbols-outlined text-base">
-                                {% if act.type == 'entrada' %}local_shipping{% elif act.type == 'retiro' %}outbox{% else %}check_circle{% endif %}
-                            </span>
-                        </div>
-                        <div>
-                            <p class="font-semibold text-stone-800">{{ act.descripcion }}</p>
-                        </div>
+                    <div class="relative">
+                        {{ form.efectivo_real }}
                     </div>
-                    <span class="text-[10px] font-bold text-stone-400 shrink-0">{{ act.hora|date:"H:i" }} hrs</span>
                 </div>
-                {% empty %}
-                <div class="p-8 text-center text-stone-400 text-xs">
-                    <span class="material-symbols-outlined text-2xl block mb-1">info</span>
-                    Sin movimientos registrados en este bloque temporal.
-                </div>
-                {% endfor %}
-            </div>
-        </div>
 
-        <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-stone-100 bg-stone-50/50">
-                <h3 class="font-bold text-sm text-stone-900 font-['Manrope']">Historial de Últimos Cortes Guardados</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse">
-                    <thead>
-                        <tr class="bg-stone-50 text-stone-500 font-bold border-b border-stone-100">
-                            <th class="p-4">Fecha / Hora</th>
-                            <th class="p-4">Usuario</th>
-                            <th class="p-4">Turno</th>
-                            <th class="p-4">Efectivo Real</th>
-                            <th class="p-4">Diferencia</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-stone-100 text-stone-700">
-                        {% for corte in ultimos_cortes %}
-                        <tr class="hover:bg-stone-50/50 transition-colors">
-                            <td class="p-4 font-semibold">{{ corte.fecha|date:"d M" }} - {{ corte.hora_cierre|time:"H:i" }}</td>
-                            <td class="p-4 text-stone-500">{{ corte.usuario.get_full_name|default:corte.usuario.username }}</td>
-                            <td class="p-4 capitalize">
-                                <span class="px-2 py-0.5 bg-stone-100 rounded-md font-medium text-stone-600">
-                                    {{ corte.turno }}
-                                </span>
-                            </td>
-                            <td class="p-4 font-bold text-stone-900">${{ corte.efectivo_real|default:"0.00" }}</td>
-                            <td class="p-4 font-bold 
-                                {% if corte.diferencia == 0 %}text-green-600
-                                {% elif corte.diferencia > 0 %}text-blue-600
-                                {% else %}text-error{% endif %}">
-                                ${{ corte.diferencia|default:"0.00" }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="p-8 text-center text-stone-400">No hay cierres previos registrados en este entorno.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">
+                        Notas / Observaciones del Turno
+                    </label>
+
+                    {{ form.notas }}
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full bg-[#904800] hover:bg-[#6f3800] text-white font-bold py-4 rounded-2xl transition-all duration-300 shadow-md"
+                >
+                    🔒 Procesar y Cerrar Turno
+                </button>
+
+            </form>
+
         </div>
 
     </div>
+
+    <!-- COLUMNA DERECHA -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- TARJETAS -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- EFECTIVO -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+
+                <p class="text-sm uppercase tracking-wide text-gray-500 font-bold">
+                    Ventas en Efectivo
+                </p>
+
+                <h2 class="text-4xl font-black text-black mt-3">
+                    ${{ ventas_efectivo }}
+                </h2>
+
+                <p class="text-sm text-gray-400 mt-2">
+                    Ventas cobradas en efectivo
+                </p>
+
+            </div>
+
+            <!-- TARJETA -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+
+                <p class="text-sm uppercase tracking-wide text-gray-500 font-bold">
+                    Ventas con Tarjeta
+                </p>
+
+                <h2 class="text-4xl font-black text-black mt-3">
+                    ${{ ventas_tarjeta }}
+                </h2>
+
+                <p class="text-sm text-gray-400 mt-2">
+                    Montos validados en terminal
+                </p>
+
+            </div>
+
+            <!-- TOTAL -->
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+
+                <p class="text-sm uppercase tracking-wide text-gray-500 font-bold">
+                    Total Vendido
+                </p>
+
+                <h2 class="text-4xl font-black text-black mt-3">
+                    ${{ ventas_efectivo|add:ventas_tarjeta }}
+                </h2>
+
+                <p class="text-sm text-gray-400 mt-2">
+                    Efectivo + Tarjeta
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- BITÁCORA -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <div class="p-6 border-b border-gray-100">
+
+                <h3 class="text-xl font-bold text-black">
+                    🕘 Bitácora de Auditoría del Turno
+                </h3>
+
+            </div>
+
+            <div class="divide-y divide-gray-100">
+
+                {% for actividad in actividades %}
+
+                <div class="p-5 flex justify-between items-center">
+
+                    <div>
+
+                        <p class="font-semibold text-gray-800">
+                            {{ actividad.descripcion }}
+                        </p>
+
+                        <p class="text-sm text-gray-400">
+                            {{ actividad.get_tipo_display }}
+                        </p>
+
+                    </div>
+
+                    <div class="text-sm text-gray-400 font-semibold">
+                        {{ actividad.hora }}
+                    </div>
+
+                </div>
+
+                {% empty %}
+
+                <div class="p-6 text-center text-gray-400">
+                    No hay actividad registrada.
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <!-- HISTORIAL -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+
+            <div class="p-6 border-b border-gray-100">
+
+                <h3 class="text-xl font-bold text-black">
+                    📋 Historial de Últimos Cortes Guardados
+                </h3>
+
+            </div>
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full min-w-[900px]">
+
+                    <thead class="bg-gray-50">
+
+                        <tr>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-gray-500 uppercase">
+                                Fecha / Hora
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-gray-500 uppercase">
+                                Usuario
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-gray-500 uppercase">
+                                Turno
+                            </th>
+
+                            <th class="px-6 py-4 text-left text-sm font-bold text-gray-500 uppercase">
+                                Efectivo Real
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-100">
+
+                        {% for corte in ultimos_cortes %}
+
+                        <tr class="hover:bg-gray-50 transition">
+
+                            <td class="px-6 py-4 font-medium text-gray-700">
+                                {{ corte.fecha }} / {{ corte.hora_cierre }}
+                            </td>
+
+                            <td class="px-6 py-4 text-gray-600">
+                                {{ corte.usuario }}
+                            </td>
+
+                            <td class="px-6 py-4 text-gray-600">
+                                {{ corte.get_turno_display }}
+                            </td>
+
+                            <td class="px-6 py-4 font-bold text-black">
+                                ${{ corte.efectivo_real }}
+                            </td>
+
+                        </tr>
+
+                        {% empty %}
+
+                        <tr>
+                            <td colspan="4" class="px-6 py-10 text-center text-gray-400">
+                                No hay cierres previos registrados.
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
@@ -180,10 +275,5 @@ function filtrarPorTurno(turno) {
     window.location.href = url.toString();
 }
 </script>
+
 {% endblock %}
-
-
-
-
-
-

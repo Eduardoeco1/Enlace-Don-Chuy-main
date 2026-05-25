@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Punto de Venta — Llama y Carbón{% endblock %}
+{% block titulo %}Punto de Venta — Enlace Don Chuy{% endblock %}
 {% block titulo_pagina %}Punto de Venta{% endblock %}
 
 {% block estilos_extra %}
@@ -93,7 +93,7 @@
                     <select id="tipoServicio" class="w-full appearance-none bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none">
                         <option value="llevar">Para Llevar</option>
                         <option value="mesa">En Mesa</option>
-                        <option value="delivery">Delivery</option>
+                       
                     </select>
                     <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 text-sm pointer-events-none">expand_more</span>
                 </div>
@@ -301,7 +301,7 @@ function actualizarCarrito() {
 
 async function procesarVenta() {
     if (pedidoActual.length === 0) {
-        alert('❌ El carrito está vacío');
+        mostrarMensajeSistema('❌ El carrito está vacío', "warning");
         return;
     }
     
@@ -321,7 +321,7 @@ async function procesarVenta() {
             },
             body: JSON.stringify({
                 tipo: tipoServicio,
-                metodo_pago: metodoPagoSeleccionado,
+                metodo: metodoPagoSeleccionado,
                 items: pedidoActual.map(item => ({
                     producto_id: item.productoId,
                     cantidad: item.cantidad,
@@ -331,21 +331,30 @@ async function procesarVenta() {
         });
         
         const data = await response.json();
-        
-        if (data.ok || response.ok) {
-            toastExito.classList.remove('hidden');
-            alert(`✅ Venta procesada con éxito!\nTicket: ${data.ticket || 'Generado'}\nTotal: $${subtotal.toFixed(2)}`);
-            
-            pedidoActual = [];
-            actualizarCarrito();
-            window.location.reload();
-        } else {
-            alert('❌ Error del servidor: ' + (data.error || 'No se pudo guardar la venta.'));
-        }
-        
+        if (response.ok && data.ok) {
+    toastExito.classList.remove('hidden');
+
+    mostrarMensajeSistema(
+        `✅ Venta procesada con éxito! Ticket: ${data.ticket || 'Generado'} | Total: $${data.total || 0}`,
+        "success"
+    );
+
+    pedidoActual = [];
+    actualizarCarrito();
+
+    setTimeout(() => {
+        window.location.reload();
+    }, 1200);
+
+} else {
+    mostrarMensajeSistema(
+        '❌ Error del servidor: ' + (data.error || 'No se pudo guardar la venta.'),
+        "error"
+    );
+}
     } catch (error) {
         console.error(error);
-        alert('❌ Error de comunicación con el servidor de Llama y Carbón.');
+        mostrarMensajeSistema('❌ Error de comunicación con el servidor.', "error");
     } finally {
         btnProcesar.disabled = false;
         btnProcesar.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Procesar Venta';

@@ -52,13 +52,19 @@ class Pedido(models.Model):
     TIPO_CHOICES = [
         ('mesa',     'En Mesa'),
         ('llevar',   'Para Llevar'),
-        ('delivery', 'Delivery'),
+        
     ]
     ESTADO_CHOICES = [
         ('abierto',   'Abierto'),
         ('procesado', 'Procesado'),
         ('cancelado', 'Cancelado'),
     ]
+    METODO_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('tarjeta', 'Tarjeta'),
+        
+    ]
+
 
     ticket    = models.CharField(max_length=20, unique=True)
     sucursal  = models.ForeignKey(
@@ -75,6 +81,13 @@ class Pedido(models.Model):
     creado_en = models.DateTimeField(default=timezone.now)
     cajero    = models.ForeignKey('Sucursales.Usuario', on_delete=models.SET_NULL,
                                    null=True, blank=True, related_name='pedidos')
+    
+    
+    metodo_pago = models.CharField(
+        max_length=20,
+        choices=METODO_PAGO_CHOICES,
+        default='efectivo'
+    )
 
     class Meta:
         ordering = ['-creado_en']

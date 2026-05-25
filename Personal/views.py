@@ -64,6 +64,7 @@ def personal_view(request):
             messages.success(request, f'✅ Usuario "{nuevo_user.username}" registrado correctamente.')
             return redirect('Personal:personal')
         else:
+            print(form.errors)
             messages.error(request, '❌ Corrige los errores en el formulario.')
 
     empleados = Empleado.objects.select_related('usuario', 'sucursal').all()
@@ -556,12 +557,12 @@ def revisar_justificante(request, justificante_id):
             
             try:
                 send_mail(
-                    subject='✅ Justificante Aprobado - Llama y Carbón',
+                    subject='✅ Justificante Aprobado - Enlace Don Chuy',
                     message=f'Hola {justificante.empleado.usuario.first_name},\n\n'
                         f'Tu justificante del {justificante.fecha} ha sido APROBADO.\n\n'
                         f'Motivo: {justificante.get_motivo_display()}\n'
                         f'Comentario: {comentario}\n\n'
-                        f'Saludos,\nEquipo Llama y Carbón',
+                        f'Saludos,\nEquipo Enlace Don Chuy',
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[justificante.empleado.usuario.email],
                     fail_silently=True,
@@ -586,13 +587,13 @@ def revisar_justificante(request, justificante_id):
             
             try:
                 send_mail(
-                    subject='❌ Justificante Rechazado - Llama y Carbón',
+                    subject='❌ Justificante Rechazado - Enlace Don Chuy',
                     message=f'Hola {justificante.empleado.usuario.first_name},\n\n'
                         f'Tu justificante del {justificante.fecha} ha sido RECHAZADO.\n\n'
                         f'Motivo: {justificante.get_motivo_display()}\n'
                         f'Comentario: {comentario}\n\n'
                         f'Por favor, contacta a tu gerente para más información.\n\n'
-                        f'Saludos,\nEquipo Llama y Carbón',
+                        f'Saludos,\nEquipo Enlace Don Chuy',
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[justificante.empleado.usuario.email],
                     fail_silently=True,

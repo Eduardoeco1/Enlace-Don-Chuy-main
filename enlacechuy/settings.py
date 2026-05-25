@@ -48,6 +48,7 @@ LOGIN_REDIRECT_URL = '/panel-control/'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -68,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'enlacechuy.context_processors.negocio_context',
                 
                 # 👇 AQUÍ ESTÁ EL CAMBIO: El inyector nuevo de las sucursales 👇
                 'Sucursales.context_processors.sucursal_contexto',
@@ -88,18 +90,11 @@ WSGI_APPLICATION = 'enlacechuy.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'prueba_l7ss',
-        'USER': 'prueba_l7ss_user',
-        'PASSWORD': 'zFBB7Xd7cTlQlAdbOaIVvOhHV9Nwbwnd',
-        'HOST': 'dpg-d86va7ojo6nc73aukp50-a.oregon-postgres.render.com',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode':'require',
-        }
-
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -152,7 +147,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'tu-email@gmail.com'  # Cambiar por tu correo real de Gmail
 EMAIL_HOST_PASSWORD = 'tu-app-password'  # Cambiar por tu contraseña de aplicación de Google
-DEFAULT_FROM_EMAIL = 'Llama y Carbón <noreply@llamaycarbon.com>'
+DEFAULT_FROM_EMAIL = 'Enlace Don Chuy <noreply@enlacedonchuy.com>'
 
 
 

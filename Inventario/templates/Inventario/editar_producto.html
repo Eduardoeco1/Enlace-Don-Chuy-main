@@ -14,78 +14,64 @@
         </a>
     </div>
 
-    <form method="post" class="bg-surface-container rounded-2xl p-8 space-y-6">
+    <form method="post" enctype="multipart/form-data" class="bg-surface-container rounded-2xl p-8 space-y-6">
         {% csrf_token %}
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Nombre -->
             <div class="space-y-2">
-                <label class="block text-sm font-bold text-on-surface">
-                    Nombre del Producto *
-                </label>
-                <input type="text" 
-                       name="nombre" 
-                       value="{{ producto.nombre }}"
-                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface"
-                       required>
+                <label class="block text-sm font-bold text-on-surface">Nombre del Producto *</label>
+                <input type="text" name="nombre" value="{{ producto.nombre }}"
+                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface" required>
             </div>
 
-            <!-- Precio -->
             <div class="space-y-2">
-                <label class="block text-sm font-bold text-on-surface">
-                    Precio de Venta * (MXN)
-                </label>
-                <input type="number" 
-                       name="precio" 
-                       value="{{ producto.precio }}"
-                       step="0.01"
-                       min="0"
-                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface"
-                       required>
+                <label class="block text-sm font-bold text-on-surface">Precio de Venta * (MXN)</label>
+                <input type="number" name="precio" value="{{ producto.precio }}" step="0.01" min="0"
+                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface" required>
             </div>
 
-            <!-- Categoría -->
             <div class="space-y-2">
-                <label class="block text-sm font-bold text-on-surface">
-                    Categoría
-                </label>
-                <select name="categoria" 
-                        class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface">
+                <label class="block text-sm font-bold text-on-surface">Categoría</label>
+                <select name="categoria" class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface">
                     <option value="">Sin categoría</option>
                     {% for cat in categorias %}
-                    <option value="{{ cat.id }}" {% if producto.categoria.id == cat.id %}selected{% endif %}>
+                    <option value="{{ cat.id }}" {% if producto.categoria and producto.categoria.id == cat.id %}selected{% endif %}>
                         {{ cat.nombre }}
                     </option>
                     {% endfor %}
                 </select>
             </div>
 
-            <!-- Stock Mínimo -->
             <div class="space-y-2">
-                <label class="block text-sm font-bold text-on-surface">
-                    Stock Mínimo
-                </label>
-                <input type="number" 
-                       name="stock_minimo" 
-                       value="{{ producto.stock_minimo }}"
-                       step="0.01"
-                       min="0"
+                <label class="block text-sm font-bold text-on-surface">Stock Mínimo</label>
+                <input type="number" name="stock_minimo" value="{{ producto.stock_minimo }}" step="0.01" min="0"
                        class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface">
             </div>
 
-            <!-- Activo -->
+            <div class="space-y-2 md:col-span-2">
+                <label class="block text-sm font-bold text-on-surface">Imagen del Producto</label>
+
+                {% if producto.imagen %}
+                    <div class="mb-3">
+                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
+                             class="w-40 h-28 object-cover rounded-xl border border-outline">
+                    </div>
+                {% endif %}
+
+                <input type="file" name="imagen" accept="image/*"
+                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface">
+                <p class="text-xs text-on-surface-variant">Formatos recomendados: JPG, PNG o WEBP.</p>
+            </div>
+
             <div class="space-y-2">
                 <label class="flex items-center gap-3">
-                    <input type="checkbox" 
-                           name="activo" 
-                           {% if producto.activo %}checked{% endif %}
+                    <input type="checkbox" name="activo" {% if producto.activo %}checked{% endif %}
                            class="w-5 h-5 rounded border-outline">
                     <span class="text-sm font-bold text-on-surface">Producto Activo</span>
                 </label>
             </div>
         </div>
 
-        <!-- Info actual -->
         <div class="bg-surface-container-low rounded-xl p-4">
             <p class="text-xs font-bold text-on-surface mb-2">Información Actual:</p>
             <div class="grid grid-cols-3 gap-4 text-xs">
@@ -117,7 +103,6 @@
     </form>
 </div>
 {% endblock %}
-
 
 
 

@@ -9,7 +9,7 @@ urlpatterns = [
     path('exportar-csv/',  views.exportar_reporte_csv,  name='exportar_csv'),
     path('exportar-consolidado/', views.exportar_consolidado_csv, name='exportar_consolidado'),
     path('exportar-sucursal/', views.exportar_sucursal_csv, name='exportar_sucursal'),
-
+    path('actualizar-meta/', views.actualizar_meta_semanal, name='actualizar_meta'),
 
 
 

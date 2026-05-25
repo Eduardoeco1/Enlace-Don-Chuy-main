@@ -34,6 +34,7 @@ class Producto(models.Model):
         ('bajo',    'Bajo'),
         ('critico', 'Crítico'),
         ('agotado', 'Agotado'),
+
     ]
     UNIDAD_CHOICES = [
         ('Kg',      'Kilogramos'),
@@ -42,7 +43,13 @@ class Producto(models.Model):
         ('Potes',   'Potes'),
         ('Bultos',  'Bultos'),
         ('Docenas', 'Docenas'),
+        
     ]
+    imagen = models.ImageField(
+        upload_to='productos/',
+        null=True,
+        blank=True
+    )
 
     nombre       = models.CharField(max_length=200, verbose_name='Nombre')
     categoria    = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True)
@@ -107,4 +114,8 @@ class Producto(models.Model):
         # Manejamos el caso de que la sucursal sea None para evitar errores en el admin
         return f"{self.nombre} — {self.sucursal if self.sucursal else 'Sin Sucursal'}"
     
-    
+    def get_imagen(self):
+        if self.imagen:
+            return self.imagen.url
+
+        return f"https://placehold.co/300x200/f0eded/904800?text={self.nombre[:2].upper()}"

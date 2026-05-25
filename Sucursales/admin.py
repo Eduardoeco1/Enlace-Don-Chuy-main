@@ -14,12 +14,12 @@ class UsuarioAdmin(UserAdmin):
     search_fields = ('username', 'first_name', 'last_name', 'email')
 
     fieldsets = UserAdmin.fieldsets + (
-        ('Llama y Carbón', {
+        ('Enlace Don Chuy', {
             'fields': ('rol', 'sucursal'),
         }),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Llama y Carbón', {
+        ('Enlace Don Chuy', {
             'fields': ('rol', 'sucursal'),
         }),
     )

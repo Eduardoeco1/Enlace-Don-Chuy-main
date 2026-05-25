@@ -10,6 +10,7 @@ class Empleado(models.Model):
     Modelo principal para la gestión de personal en el sistema multisucursal.
     """
     ROLES_CHOICES = [
+       
         ('gerente', 'Gerente'),
         ('empleado', 'Empleado'),
     ]

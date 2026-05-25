@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>{% block titulo %}Llama y Carbón{% endblock %}</title>
+    <title>{% block titulo %}Enlace Don Chuy{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     
@@ -48,7 +48,7 @@
     
     <div class="p-4 border-b border-stone-200">
         <div class="px-2 py-2">
-            <h2 class="text-lg font-black text-orange-900 tracking-tighter">Llama y Carbón</h2>
+            <h2 class="text-lg font-black text-orange-900 tracking-tighter">Enlace Don Chuy</h2>
             <p class="text-xs text-stone-500 font-medium">Sistema POS</p>
         </div>
     </div>
@@ -451,5 +451,128 @@ document.addEventListener('click', function(event) {
 
 {% block scripts_extra %}{% endblock %}
 
+<div id="toastSistema"
+     class="hidden fixed top-6 right-6 z-[9999] max-w-md rounded-xl border px-5 py-4 shadow-xl text-sm font-semibold">
+    <span id="toastTexto"></span>
+</div>
+
+<script>
+    function mostrarMensajeSistema(mensaje, tipo = "error") {
+        const toast = document.getElementById("toastSistema");
+        const texto = document.getElementById("toastTexto");
+
+        if (!toast || !texto) return;
+
+        texto.textContent = mensaje;
+
+        toast.className = "fixed top-6 right-6 z-[9999] max-w-md rounded-xl border px-5 py-4 shadow-xl text-sm font-semibold";
+
+        if (tipo === "success") {
+            toast.classList.add("bg-green-50", "text-green-700", "border-green-200");
+        } else if (tipo === "warning") {
+            toast.classList.add("bg-yellow-50", "text-yellow-700", "border-yellow-200");
+        } else {
+            toast.classList.add("bg-red-50", "text-red-700", "border-red-200");
+        }
+
+        toast.classList.remove("hidden");
+
+        setTimeout(() => {
+            toast.classList.add("hidden");
+        }, 4500);
+    }
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // ─────────────────────────────────────────────
+    // VALIDACIÓN GLOBAL PARA INPUTS NUMÉRICOS
+    // ─────────────────────────────────────────────
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+
+        input.setAttribute(
+            "min",
+            input.getAttribute("min") || "0"
+        );
+
+        input.addEventListener("keydown", function (e) {
+
+            // Bloquear letras y símbolos inválidos
+            if (["e", "E", "+", "-"].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        input.addEventListener("input", function () {
+
+            // Permitir solo números y punto decimal
+            this.value = this.value.replace(/[^\d.]/g, "");
+
+            // Evitar múltiples puntos decimales
+            const partes = this.value.split(".");
+
+            if (partes.length > 2) {
+                this.value =
+                    partes[0] + "." + partes.slice(1).join("");
+            }
+
+            // Evitar negativos
+            if (parseFloat(this.value) < 0) {
+                this.value = 0;
+            }
+        });
+    });
+
+    // ─────────────────────────────────────────────
+    // BLOQUEAR FECHAS PASADAS
+    // EXCEPTO EN REPORTES
+    // ─────────────────────────────────────────────
+    const hoy = new Date().toISOString().split("T")[0];
+
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+
+        // Si tiene esta clase, sí puede usar fechas pasadas
+        if (input.classList.contains("permitir-fecha-pasada")) {
+            return;
+        }
+
+        input.setAttribute("min", hoy);
+
+        input.addEventListener("change", function () {
+
+            if (this.value && this.value < hoy) {
+
+                this.value = hoy;
+
+                if (typeof mostrarMensajeSistema === "function") {
+
+                    mostrarMensajeSistema(
+                        "No puedes seleccionar una fecha anterior a hoy.",
+                        "warning"
+                    );
+                }
+            }
+        });
+    });
+
+    // ─────────────────────────────────────────────
+    // CAMPOS SOLO LETRAS
+    // ─────────────────────────────────────────────
+    document.querySelectorAll(".solo-letras").forEach(input => {
+
+        input.addEventListener("input", function () {
+
+            this.value = this.value.replace(
+                /[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g,
+                ""
+            );
+        });
+    });
+
+});
+</script>
 </body>
+
+
 </html>

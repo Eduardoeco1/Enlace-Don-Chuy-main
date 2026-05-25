@@ -8,7 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
-
+from django.shortcuts import get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .models import Producto, Categoria
 from .forms import ProductoForm
 from Sucursales.models import Sucursal
@@ -152,51 +154,49 @@ def exportar_inventario(request):
     
     return response
 
-
 @login_required(login_url='/')
 @gerente_o_superior
 def editar_producto(request, producto_id):
     """Vista para editar producto del inventario con control estricto de acceso"""
     producto = get_object_or_404(Producto, id=producto_id)
-    # ── MODIFICACIÓN: Leer directamente del Middleware ──
     sucursal_actual = getattr(request, 'sucursal_actual', None)
-    
+
     es_duena = (
-        request.user.is_superuser or 
-        (hasattr(request.user, 'rol') and request.user.rol in ['duena', 'dueña']) or 
+        request.user.is_superuser or
+        (hasattr(request.user, 'rol') and request.user.rol in ['duena', 'dueña']) or
         request.user.groups.filter(name='Dueña').exists()
     )
-    
-    # Control de seguridad: Si no es dueña, el gerente no puede editar productos fuera de su contexto
+
     if not es_duena and sucursal_actual and producto.sucursal != sucursal_actual:
         messages.error(request, '🚫 No tienes permiso para editar este producto.')
         return redirect('Inventario:inventario')
-    
+
     if request.method == 'POST':
         producto.nombre = request.POST.get('nombre', producto.nombre)
         producto.precio = request.POST.get('precio', producto.precio)
         producto.stock_minimo = request.POST.get('stock_minimo', producto.stock_minimo)
         producto.activo = request.POST.get('activo') == 'on'
-        
+
         categoria_id = request.POST.get('categoria')
         if categoria_id:
-            try:
-                producto.categoria = Categoria.objects.get(id=categoria_id)
-            except Categoria.DoesNotExist:
-                pass
-        
+            producto.categoria = Categoria.objects.filter(id=categoria_id).first()
+        else:
+            producto.categoria = None
+
+        if request.FILES.get('imagen'):
+            producto.imagen = request.FILES.get('imagen')
+
         producto.save()
         messages.success(request, f'✅ Producto "{producto.nombre}" actualizado correctamente.')
         return redirect('Inventario:inventario')
-    
-    context = {
-        'producto':        producto,
-        'categorias':      Categoria.objects.all(),
-        # No pasamos 'sucursal_actual' para evitar sobreescribir el del context_processor
-        'usuario_nombre':  request.user.get_full_name() or request.user.username,
-    }
-    return render(request, 'Inventario/editar_producto.html', context)
 
+    context = {
+        'producto': producto,
+        'categorias': Categoria.objects.all(),
+        'usuario_nombre': request.user.get_full_name() or request.user.username,
+    }
+
+    return render(request, 'Inventario/editar_producto.html', context)
 
 @login_required(login_url='/')
 @gerente_o_superior
@@ -232,7 +232,20 @@ def actualizar_precio_rapido(request, producto_id):
     except Exception as e:
         return JsonResponse({'ok': False, 'error': str(e)}, status=400)
     
-    
+@login_required(login_url='/')
+def eliminar_producto(request, producto_id):
+
+    # Verificar permisos
+    if request.user.rol not in ['duena', 'gerente', 'dueña'] and not request.user.is_superuser:
+        messages.error(request, '❌ No tienes permisos para eliminar productos.')
+        return redirect('Inventario:inventario')
+
+    producto = get_object_or_404(Producto, id=producto_id)
+
+    producto.delete()
+
+    messages.success(request, '✅ Producto eliminado correctamente.')
+    return redirect('Inventario:inventario')
 
 
 

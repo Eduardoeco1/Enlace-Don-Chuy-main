@@ -255,7 +255,7 @@ def exportar_reporte_csv(request):
     response.write('\ufeff')
 
     writer = csv.writer(response)
-    writer.writerow(['Reporte de Desempeño — Llama y Carbón'])
+    writer.writerow(['Reporte de Desempeño — Enlace Don Chuy'])
     writer.writerow([f'Sucursal: {sucursal.nombre if sucursal else "Todas las Sucursales"}'])
     writer.writerow([f'Período Evaluado: {context["fecha_rango"]}'])
     writer.writerow([])
@@ -361,7 +361,40 @@ def exportar_sucursal_csv(request):
 
     return response
 
+@login_required(login_url='/')
+@gerente_o_superior
+def actualizar_meta_semanal(request):
+    if request.method != 'POST':
+        return redirect('Reportes:reporte')
 
+    if not _es_duena(request.user):
+        messages.error(request, '❌ Solo la dueña puede modificar la meta semanal.')
+        return redirect('Reportes:reporte')
+
+    sucursal_id = request.POST.get('sucursal_id')
+    objetivo = request.POST.get('objetivo_monto')
+
+    if not objetivo:
+        messages.error(request, '❌ Ingresa un monto válido para la meta.')
+        return redirect('Reportes:reporte')
+
+    hoy = timezone.now().date()
+    inicio_semana = hoy - timedelta(days=hoy.weekday())
+
+    sucursal = None
+    if sucursal_id and sucursal_id != 'todas':
+        sucursal = Sucursal.objects.filter(id=sucursal_id).first()
+
+    meta, creada = MetaSemanal.objects.update_or_create(
+        sucursal=sucursal,
+        fecha_inicio=inicio_semana,
+        defaults={
+            'objetivo_monto': objetivo,
+        }
+    )
+
+    messages.success(request, '✅ Meta semanal actualizada correctamente.')
+    return redirect('Reportes:reporte')
 
 
 

@@ -11,7 +11,12 @@ def sucursal_contexto(request):
     }
 
 
-
+def negocio_context(request):
+    return {
+        "NOMBRE_NEGOCIO": "Enlace Don Chuy",
+        "NOMBRE_NEGOCIO_MAYUS": "ENLACE DON CHUY",
+        "NOMBRE_SISTEMA": "Sistema POS",
+    }
 
 
 
