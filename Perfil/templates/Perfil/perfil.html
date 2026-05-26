@@ -8,16 +8,12 @@
 
 <div class="max-w-5xl mx-auto space-y-8">
 
-    {# ── Tarjeta de cabecera dinámica ── #}
-    <section class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 p-8 flex flex-col md:flex-row items-center md:items-center md:justify-between gap-6">
+    <section class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 p-8 flex flex-col md:flex-row items-center md:justify-between gap-6">
         <div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
             <div class="relative">
                 <div class="w-28 h-28 rounded-full border-4 border-primary-fixed overflow-hidden shadow-lg bg-surface-container-high flex items-center justify-center">
                     {% if request.user.foto_perfil %}
-                        <img src="{{ request.user.foto_perfil.url }}?v={{ request.user.id }}" 
-                             class="w-full h-full object-cover"
-                             alt="Foto de perfil"
-                             id="avatar-central">
+                        <img src="{{ request.user.foto_perfil.url }}?v={{ request.user.id }}" class="w-full h-full object-cover" alt="Foto de perfil">
                     {% else %}
                         <span class="material-symbols-outlined text-6xl text-on-surface-variant">person</span>
                     {% endif %}
@@ -26,11 +22,13 @@
                     <span class="material-symbols-outlined text-sm">photo_camera</span>
                 </div>
             </div>
+
             <div>
-                <h2 class="text-3xl font-extrabold text-primary font-headline" id="nombre-usuario">
+                <h2 class="text-3xl font-extrabold text-primary font-headline">
                     {{ request.user.get_full_name|default:request.user.username }}
                 </h2>
-                <p class="text-on-surface-variant font-semibold uppercase tracking-wider text-sm mt-1" id="rol-usuario">
+
+                <p class="text-on-surface-variant font-semibold uppercase tracking-wider text-sm mt-1">
                     {% if request.user.is_superuser or request.user.rol == 'duena' %}
                         DUEÑA - ACCESO GLOBAL
                     {% elif request.user.rol == 'gerente' %}
@@ -39,13 +37,15 @@
                         EMPLEADO - {{ request.user.empleado.sucursal.nombre|default:"Sin Sucursal" }}
                     {% endif %}
                 </p>
+
                 <div class="mt-2 flex items-center justify-center md:justify-start gap-4 text-stone-500 text-sm">
                     {% if request.user.empleado.sucursal %}
                     <span class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-xs">location_on</span>
-                        <span id="sucursal-usuario">{{ request.user.empleado.sucursal.nombre }}</span>
+                        {{ request.user.empleado.sucursal.nombre }}
                     </span>
                     {% endif %}
+
                     <span class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-xs">verified_user</span>
                         Activo
@@ -53,83 +53,69 @@
                 </div>
             </div>
         </div>
-        <a href="{% url 'Perfil:editar_perfil' %}" class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
+
+        <a href="{% url 'Perfil:editar_perfil' %}"
+           class="bg-primary text-on-primary px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-colors shadow-sm">
             <span class="material-symbols-outlined text-sm">edit</span>
             Editar Perfil
         </a>
     </section>
 
-    {# ── Grid: Datos personales + Seguridad ── #}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-        {# Datos personales #}
         <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
             <div class="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center">
                 <h4 class="text-lg font-bold text-primary font-headline">Datos Personales</h4>
                 <span class="material-symbols-outlined text-outline">badge</span>
             </div>
+
             <div class="p-6 space-y-5">
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                        Nombre de usuario
-                    </label>
-                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high" id="username-display">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Nombre de usuario</label>
+                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high">
                         {{ request.user.username }}
                     </p>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                        Email
-                    </label>
-                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high" id="email-display">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Email</label>
+                    <p class="text-on-surface font-medium py-2 border-b border-surface-container-high">
                         {{ request.user.email|default:"No registrado" }}
                     </p>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                        Fecha de registro
-                    </label>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Fecha de registro</label>
                     <p class="text-on-surface font-medium py-2 border-b border-surface-container-high">
                         {{ request.user.date_joined|date:"d/m/Y" }}
                     </p>
                 </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">
-                        Último acceso
-                    </label>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-1">Último acceso</label>
                     <p class="text-on-surface font-medium py-2">{{ ultimo_login }}</p>
                 </div>
             </div>
         </div>
 
-        {# Seguridad #}
         <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
             <div class="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center">
                 <h4 class="text-lg font-bold text-primary font-headline">Seguridad y Cuenta</h4>
                 <span class="material-symbols-outlined text-outline">security</span>
             </div>
+
             <div class="p-6 space-y-3">
-               <button type="button"
-    onclick="mostrarMensajePassword()"
-    class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-colors group">
+                <a href="{% url 'Perfil:editar_perfil' %}#cambiar-password"
+                   class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-primary">lock_reset</span>
+                        <span class="font-bold text-sm text-on-surface">Cambiar Contraseña</span>
+                    </div>
+                    <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">
+                        chevron_right
+                    </span>
+                </a>
 
-    <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-primary">lock_reset</span>
-        <span class="font-bold text-sm text-on-surface">
-            Cambiar Contraseña
-        </span>
-    </div>
-
-    <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">
-        chevron_right
-    </span>
-</button>
-
-<script>
-function mostrarMensajePassword() {
-    alert("La función de cambio de contraseña estará disponible próximamente.");
-}
-</script>
                 <div class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-primary">verified</span>
@@ -146,24 +132,29 @@ function mostrarMensajePassword() {
                         {% if request.user.is_active %}Activo{% else %}Inactivo{% endif %}
                     </span>
                 </div>
+
                 <div class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-primary">admin_panel_settings</span>
                         <div>
                             <span class="block font-bold text-sm text-on-surface">Permisos</span>
                             <span class="block text-xs text-on-surface-variant">
-                                {% if request.user.is_superuser %}Superusuario
-                                {% elif request.user.is_staff %}Staff
-                                {% else %}Usuario estándar{% endif %}
+                                {% if request.user.is_superuser %}
+                                    Superusuario
+                                {% elif request.user.is_staff %}
+                                    Staff
+                                {% else %}
+                                    Usuario estándar
+                                {% endif %}
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
-    {# ── Actividad reciente ── #}
     <section class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 overflow-hidden">
         <div class="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center">
             <h4 class="text-lg font-bold text-primary font-headline">Actividad Reciente</h4>
@@ -171,6 +162,7 @@ function mostrarMensajePassword() {
                 Ver todo
             </a>
         </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
@@ -180,6 +172,7 @@ function mostrarMensajePassword() {
                         <th class="px-6 py-3 text-xs font-bold text-on-surface-variant uppercase tracking-widest text-right">Fecha y Hora</th>
                     </tr>
                 </thead>
+
                 <tbody class="divide-y divide-outline-variant/10">
                     {% for item in actividad %}
                     <tr class="hover:bg-surface-container-low transition-colors">
@@ -207,7 +200,6 @@ function mostrarMensajePassword() {
         </div>
     </section>
 
-    {# ── Zona de peligro ── #}
     <div class="flex justify-end pb-4">
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
@@ -220,6 +212,8 @@ function mostrarMensajePassword() {
     </div>
 
 </div>
+
 {% endwith %}
 {% endblock %}
+
 
