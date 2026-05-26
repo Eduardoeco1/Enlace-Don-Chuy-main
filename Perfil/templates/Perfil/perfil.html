@@ -109,16 +109,27 @@
                 <span class="material-symbols-outlined text-outline">security</span>
             </div>
             <div class="p-6 space-y-3">
-                <a href="/admin/password_change/"
-                   class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-colors group">
-                    <div class="flex items-center gap-3">
-                        <span class="material-symbols-outlined text-primary">lock_reset</span>
-                        <span class="font-bold text-sm text-on-surface">Cambiar Contraseña</span>
-                    </div>
-                    <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">
-                        chevron_right
-                    </span>
-                </a>
+               <button type="button"
+    onclick="mostrarMensajePassword()"
+    class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low hover:bg-surface-container-high transition-colors group">
+
+    <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">lock_reset</span>
+        <span class="font-bold text-sm text-on-surface">
+            Cambiar Contraseña
+        </span>
+    </div>
+
+    <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">
+        chevron_right
+    </span>
+</button>
+
+<script>
+function mostrarMensajePassword() {
+    alert("La función de cambio de contraseña estará disponible próximamente.");
+}
+</script>
                 <div class="w-full flex items-center justify-between p-4 rounded-xl bg-surface-container-low">
                     <div class="flex items-center gap-3">
                         <span class="material-symbols-outlined text-primary">verified</span>
