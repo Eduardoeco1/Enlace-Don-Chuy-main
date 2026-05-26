@@ -297,7 +297,7 @@ def actualizar_precio_rapido(request, producto_id):
 
 
 @login_required(login_url='/')
-@gerente_o_superior
+@cualquier_rol
 @require_POST
 def eliminar_producto(request, producto_id):
     sucursal_actual, es_duena = _obtener_sucursal_usuario(request)
