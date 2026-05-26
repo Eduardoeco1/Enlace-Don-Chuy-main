@@ -266,7 +266,7 @@
             Editar
         </a>
 
-        {% if es_duena or request.user.is_superuser or request.user.rol == 'gerente' %}
+        {% if es_duena or request.user.is_superuser or empleado.rol == 'gerente' %}
 
         <button type="button"
                 onclick="abrirModalEliminar('{% url 'Inventario:eliminar_producto' producto.id %}', '{{ producto.nombre|escapejs }}')"

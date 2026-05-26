@@ -119,6 +119,12 @@ def inventario_view(request):
 
         messages.error(request, '❌ Corrige los errores en el formulario.')
 
+        try:
+            empleado = request.user.empleado
+        except:
+            empleado = None
+
+
     context = {
         'saludo': _get_saludo_cdmx(),
         'page_obj': page_obj,
@@ -136,6 +142,7 @@ def inventario_view(request):
         'es_duena': es_duena,
         'usuario_nombre': request.user.get_full_name() or request.user.username,
         'es_duena': request.user.rol == 'duena',
+        'empleado': empleado,
     }
 
     return render(request, 'Inventario/Inventario.html', context)
