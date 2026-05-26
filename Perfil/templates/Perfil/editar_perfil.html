@@ -5,20 +5,7 @@
 <div class="max-w-2xl mx-auto space-y-6">
     <h1 class="text-3xl font-black text-on-surface">Editar Mi Perfil</h1>
 
-    {% if messages %}
-    <div class="space-y-3">
-        {% for message in messages %}
-        <div class="p-4 rounded-xl text-sm font-bold flex items-center gap-2 
-            {% if message.tags == 'success' %} bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 
-            {% else %} bg-error/10 text-error border border-error/20 {% endif %}">
-            <span class="material-symbols-outlined text-xl">
-                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
-            </span>
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+  
 
     <form method="post" enctype="multipart/form-data" class="bg-surface-container rounded-2xl p-8 space-y-6">
         {% csrf_token %}

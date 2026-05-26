@@ -8,20 +8,7 @@
 
 <div class="space-y-8 max-w-7xl">
 
-    {# ── Mensajes ── #}
-    {% if messages %}
-        {% for message in messages %}
-        <div class="px-5 py-4 rounded-xl text-sm font-semibold flex items-center gap-3
-            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
-            {% else %}bg-error-container text-on-error-container{% endif %}">
-            <span class="material-symbols-outlined">
-                {% if message.tags == 'success' %}check_circle{% else %}error{% endif %}
-            </span>
-            {{ message }}
-        </div>
-        {% endfor %}
-    {% endif %}
-
+   
     {# ── Encabezado ── #}
     <div class="flex justify-between items-end">
         <div class="space-y-1">
