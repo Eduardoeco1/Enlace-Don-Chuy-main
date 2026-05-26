@@ -47,35 +47,53 @@
                     </div>
                 </div>
 
-                <div class="w-full sm:w-56">
-                    <label class="block text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.15em] px-1 mb-2">
-                        Sucursal
-                    </label>
+               <div class="w-full sm:w-56">
+    <label class="block text-[10px] font-extrabold text-on-surface-variant uppercase tracking-[0.15em] px-1 mb-2">
+        Sucursal
+    </label>
 
-                    <div class="relative">
-                        <select id="filtro-sucursal"
-                                name="sucursal_id"
-                                autocomplete="off"
-                                class="w-full appearance-none border border-outline-variant/40 bg-transparent text-on-surface rounded-full px-5 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary outline-none cursor-pointer pr-10 transition-colors hover:bg-surface-container-high">
+    {% if es_duena %}
 
-                            {% if es_duena %}
-                            <option value="todas" {% if sucursal_id_actual == 'todas' or not sucursal_id_actual %}selected{% endif %}>
-                                Todas las Sucursales
-                            </option>
-                            {% endif %}
+    <div class="relative">
+        <select id="filtro-sucursal"
+                name="sucursal_id"
+                autocomplete="off"
+                class="w-full appearance-none border border-outline-variant/40 bg-transparent text-on-surface rounded-full px-5 py-2.5 text-sm font-semibold focus:ring-2 focus:ring-primary outline-none cursor-pointer pr-10 transition-colors hover:bg-surface-container-high">
 
-                            {% for suc in sucursales %}
-                            <option value="{{ suc.id }}" {% if sucursal_id_actual|stringformat:"s" == suc.id|stringformat:"s" %}selected{% endif %}>
-                                {{ suc.nombre }}
-                            </option>
-                            {% endfor %}
-                        </select>
+            <option value="todas"
+                {% if sucursal_id_actual == 'todas' or not sucursal_id_actual %}
+                    selected
+                {% endif %}>
+                Todas las Sucursales
+            </option>
 
-                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 text-sm pointer-events-none">
-                            expand_more
-                        </span>
-                    </div>
-                </div>
+            {% for suc in sucursales %}
+            <option value="{{ suc.id }}"
+                {% if sucursal_id_actual|stringformat:"s" == suc.id|stringformat:"s" %}
+                    selected
+                {% endif %}>
+                {{ suc.nombre }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-stone-500 text-sm pointer-events-none">
+            expand_more
+        </span>
+    </div>
+
+    {% else %}
+
+    <input type="hidden"
+           id="filtro-sucursal"
+           value="{{ sucursal_actual.id }}">
+
+    <div class="w-full border border-outline-variant/40 bg-surface-container-high text-on-surface rounded-full px-5 py-2.5 text-sm font-bold">
+        {{ sucursal_actual.nombre }}
+    </div>
+
+    {% endif %}
+</div>
 
                 <div id="fechas-personalizadas"
                      class="{% if periodo_actual != 'personalizado' %}hidden{% endif %} flex gap-3 w-full sm:w-auto">
