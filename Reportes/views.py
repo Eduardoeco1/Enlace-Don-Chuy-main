@@ -51,6 +51,13 @@ def _obtener_fechas_y_sucursal(request):
         fecha_inicio, fecha_fin = hoy, hoy
 
     sucursal_usuario = getattr(request, 'sucursal_actual', None)
+
+    if not sucursal_usuario:
+        try:
+            sucursal_usuario = request.user.empleado.sucursal
+        except Exception:
+            sucursal_usuario = None
+
     sucursal_id_get = request.GET.get('sucursal_id')
 
     if sucursal_id_get and sucursal_id_get != 'todas':
@@ -66,7 +73,6 @@ def _obtener_fechas_y_sucursal(request):
         sucursal_id = None
 
     return fecha_inicio, fecha_fin, sucursal_id
-
 
 def _get_contexto_reporte(request):
     fecha_inicio, fecha_fin, sucursal_id = _obtener_fechas_y_sucursal(request)
