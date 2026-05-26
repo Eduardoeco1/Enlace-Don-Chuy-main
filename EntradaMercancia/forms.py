@@ -24,10 +24,10 @@ class EntradaInsumoForm(forms.ModelForm):
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500'
             }),
             'cantidad': forms.NumberInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500',
-                'step': '0.01',
-                'min': '0'
-            }),
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500',
+            'step': '1',
+            'min': '1'
+      }),
             'unidad': forms.Select(
     choices=[
         ('PZ', 'PZ - Pieza'),
@@ -71,6 +71,7 @@ class EntradaInsumoForm(forms.ModelForm):
         sucursal_actual = kwargs.pop('sucursal_actual', None)
         
         super().__init__(*args, **kwargs)
+        self.fields['cantidad'].min_value = 1
         
         # Evaluar el rol del usuario (Dueña o Superusuario) de forma robusta
         es_duena = False
