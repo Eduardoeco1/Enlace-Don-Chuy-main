@@ -135,6 +135,7 @@ def inventario_view(request):
         'form': form,
         'es_duena': es_duena,
         'usuario_nombre': request.user.get_full_name() or request.user.username,
+        'es_duena': request.user.rol == 'duena',
     }
 
     return render(request, 'Inventario/Inventario.html', context)
