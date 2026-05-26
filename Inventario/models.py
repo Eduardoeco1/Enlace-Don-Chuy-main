@@ -5,7 +5,6 @@ from decimal import Decimal
 # Categorías fijas del sistema
 CATEGORIAS_FIJAS = [
     'Pollo/Partes de pollo',
-    'Condimentos',
     'Acompañamientos',
 ]
 

@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='entradainsumo',
             name='categoria',
-            field=models.CharField(choices=[('pollo', 'Pollo/Partes de pollo'), ('condimentos', 'Condimentos'), ('acompañamientos', 'Acompañamientos')], default='pollo', help_text='Categoría del producto para clasificación', max_length=50, verbose_name='Categoría'),
+            field=models.CharField(choices=[('pollo', 'Pollo/Partes de pollo'),  ('acompañamientos', 'Acompañamientos')], default='pollo', help_text='Categoría del producto para clasificación', max_length=50, verbose_name='Categoría'),
         ),
         migrations.AddField(
             model_name='entradainsumo',

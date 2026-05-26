@@ -28,7 +28,6 @@ class EntradaInsumo(models.Model):
     # Categorías fijas (iguales a las de Inventario)
     CATEGORIAS = [
         ('pollo', 'Pollo/Partes de pollo'),
-        ('condimentos', 'Condimentos'),
         ('acompañamientos', 'Acompañamientos'),
     ]
 
@@ -92,7 +91,6 @@ class EntradaInsumo(models.Model):
         """Retorna el nombre de la categoría para sincronizar con Inventario"""
         mapping = {
             'pollo': 'Pollo/Partes de pollo',
-            'condimentos': 'Condimentos',
             'acompañamientos': 'Acompañamientos',
         }
         return mapping.get(self.categoria, 'Pollo/Partes de pollo')
