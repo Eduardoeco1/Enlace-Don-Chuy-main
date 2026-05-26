@@ -161,6 +161,9 @@ def exportar_inventario(request):
 @login_required(login_url='/')
 @gerente_o_superior
 def editar_producto(request, producto_id):
+    import re
+    from decimal import Decimal
+
     producto = get_object_or_404(Producto, id=producto_id)
     sucursal_actual = getattr(request, 'sucursal_actual', None)
 
@@ -175,31 +178,80 @@ def editar_producto(request, producto_id):
         return redirect('Inventario:inventario')
 
     if request.method == 'POST':
-        producto.nombre = request.POST.get('nombre', producto.nombre)
+
+        nombre_post = request.POST.get('nombre', '').strip()
+
+        # VALIDAR SOLO LETRAS
+        if not re.fullmatch(r'[A-Za-zÁÉÍÓÚáéíóúÑñ ]+', nombre_post):
+            messages.error(
+                request,
+                '❌ El nombre solo puede contener letras y espacios.'
+            )
+            return redirect(
+                'Inventario:editar_producto',
+                producto_id=producto.id
+            )
+
+        # VALIDAR STOCK MINIMO ENTERO
+        stock_minimo_post = request.POST.get('stock_minimo', '0')
+
+        try:
+            stock_minimo_decimal = Decimal(stock_minimo_post)
+
+            if stock_minimo_decimal != int(stock_minimo_decimal):
+                raise ValueError
+
+        except Exception:
+            messages.error(
+                request,
+                '❌ El stock mínimo debe ser un número entero.'
+            )
+            return redirect(
+                'Inventario:editar_producto',
+                producto_id=producto.id
+            )
+
+        producto.nombre = nombre_post
         producto.precio = request.POST.get('precio', producto.precio)
-        producto.stock_minimo = request.POST.get('stock_minimo', producto.stock_minimo)
+        producto.stock_minimo = int(stock_minimo_decimal)
         producto.activo = request.POST.get('activo') == 'on'
 
         categoria_id = request.POST.get('categoria')
 
         if categoria_id:
-            producto.categoria = Categoria.objects.filter(id=categoria_id).first()
+            producto.categoria = Categoria.objects.filter(
+                id=categoria_id
+            ).first()
         else:
             producto.categoria = None
 
         sucursal_id = request.POST.get('sucursal')
 
         if sucursal_id:
-            producto.sucursal = Sucursal.objects.filter(id=sucursal_id).first()
+            producto.sucursal = Sucursal.objects.filter(
+                id=sucursal_id
+            ).first()
+
         elif not producto.sucursal:
-            messages.error(request, '❌ Debes seleccionar una sucursal.')
-            return redirect('Inventario:editar_producto', producto_id=producto.id)
+            messages.error(
+                request,
+                '❌ Debes seleccionar una sucursal.'
+            )
+            return redirect(
+                'Inventario:editar_producto',
+                producto_id=producto.id
+            )
 
         if request.FILES.get('imagen'):
             producto.imagen = request.FILES.get('imagen')
 
         producto.save()
-        messages.success(request, f'✅ Producto "{producto.nombre}" actualizado correctamente.')
+
+        messages.success(
+            request,
+            f'✅ Producto "{producto.nombre}" actualizado correctamente.'
+        )
+
         return redirect('Inventario:inventario')
 
     context = {
@@ -209,8 +261,11 @@ def editar_producto(request, producto_id):
         'usuario_nombre': request.user.get_full_name() or request.user.username,
     }
 
-    return render(request, 'Inventario/editar_producto.html', context)
-
+    return render(
+        request,
+        'Inventario/editar_producto.html',
+        context
+    )
 
 @login_required(login_url='/')
 @gerente_o_superior
