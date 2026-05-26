@@ -278,6 +278,16 @@
                                    class="px-3 py-2 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-all flex items-center gap-1">
                                     <span class="material-symbols-outlined text-sm">edit</span>
                                     Editar
+                                    {% if request.user.rol == 'duena' or request.user.rol == 'dueña' or request.user.rol == 'gerente' or request.user.is_superuser %}
+<form method="post" action="{% url 'Inventario:eliminar_producto' producto.id %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit"
+            onclick="return confirm('¿Seguro que deseas eliminar este producto?');"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
+        Eliminar
+    </button>
+</form>
+{% endif %}
                                 {% if request.user.empleado.rol == 'duena' or request.user.empleado.rol == 'gerente' or request.user.empleado.rol == 'dueña' %}
 <a href=""javascript:void(0)"
    onclick="abrirModalEliminar('{% url 'Inventario:eliminar_producto' producto.id %}', '{{ producto.nombre }}')"
