@@ -208,7 +208,7 @@ def reporte_view(request):
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
 
-        'sucursales': Sucursal.objects.all(),
+        'sucursales': Sucursal.objects.all() if reporte_context['es_duena'] else Sucursal.objects.filter(id=sucursal.id) if sucursal else Sucursal.objects.none(),
         'sucursal_id_actual': request.GET.get('sucursal_id', str(sucursal.id) if sucursal else 'todas'),
 
         'total_semana': reporte_context['total_semana'],
