@@ -179,23 +179,35 @@
                     {{ usuario_nombre|default:"Usuario" }}
                 </p>
 
-                <p class="text-xs text-stone-500 truncate">
-                    {% if request.user.is_superuser %}
-                        Dueña
-                    {% elif request.user.empleado.rol == 'duena' or request.user.empleado.rol == 'dueña' %}
-                        Dueña
-                    {% elif request.user.empleado.rol == 'gerente' %}
-                        Gerente
-                    {% elif request.user.empleado.rol == 'empleado' %}
-                        Empleado
-                    {% else %}
-                        Usuario
-                    {% endif %}
+               <p class="text-xs text-stone-500 truncate">
 
-                    {% if sucursal_actual %}
-                        • {{ sucursal_actual.nombre }}
-                    {% endif %}
-                </p>
+    {% if request.user.is_superuser %}
+        Dueña
+
+    {% elif request.user.rol == 'duena' or request.user.rol == 'dueña' %}
+        Dueña
+
+    {% elif request.user.rol == 'gerente' %}
+        Gerente
+
+    {% elif request.user.empleado.rol == 'gerente' %}
+        Gerente
+
+    {% elif request.user.rol == 'empleado' %}
+        Empleado
+
+    {% elif request.user.empleado.rol == 'empleado' %}
+        Empleado
+
+    {% else %}
+        Usuario
+    {% endif %}
+
+    {% if sucursal_actual %}
+        • {{ sucursal_actual.nombre }}
+    {% endif %}
+
+</p>
             </div>
         </div>
 
