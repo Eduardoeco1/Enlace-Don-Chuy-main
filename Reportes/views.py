@@ -397,6 +397,103 @@ def actualizar_meta_semanal(request):
     return redirect('Reportes:reporte')
 
 
+@login_required(login_url='/')
+@gerente_o_superior
+def registrar_conteo_inventario(request):
+    if request.method != 'POST':
+        return redirect('Reportes:reporte')
+
+    from Inventario.models import Producto
+
+    producto_id = request.POST.get('producto_id')
+    stock_real = request.POST.get('stock_real')
+
+    producto = Producto.objects.filter(id=producto_id).first()
+
+    if not producto:
+        messages.error(request, '❌ Producto no encontrado.')
+        return redirect('Reportes:reporte')
+
+    try:
+        stock_real = Decimal(stock_real)
+    except Exception:
+        messages.error(request, '❌ Ingresa un stock real válido.')
+        return redirect('Reportes:reporte')
+
+    stock_teorico = producto.stock
+    diferencia = stock_real - stock_teorico
+
+    if diferencia == 0:
+        Insumo.objects.filter(
+            nombre=producto.nombre,
+            sucursal=producto.sucursal
+        ).delete()
+
+        messages.success(request, '✅ Sin discrepancias detectadas.')
+        return redirect('Reportes:reporte')
+
+    costo_estimado = abs(diferencia) * producto.precio
+
+    Insumo.objects.update_or_create(
+        nombre=producto.nombre,
+        sucursal=producto.sucursal,
+        defaults={
+            'unidad': producto.unidad,
+            'stock_esperado': stock_teorico,
+            'stock_fisico': stock_real,
+            'costo_diferencia': costo_estimado,
+            'icono': 'inventory_2',
+        }
+    )
+
+    messages.warning(request, f'⚠️ Discrepancia registrada en {producto.nombre}.')
+    return redirect('Reportes:reporte')
+
+
+@login_required(login_url='/')
+@gerente_o_superior
+def resolver_discrepancia(request, insumo_id):
+
+    if request.method != 'POST':
+        return redirect('Reportes:reporte')
+
+    from Inventario.models import Producto
+
+    insumo = Insumo.objects.filter(id=insumo_id).first()
+
+    if not insumo:
+        messages.error(
+            request,
+            '❌ Discrepancia no encontrada.'
+        )
+        return redirect('Reportes:reporte')
+
+    producto = Producto.objects.filter(
+        nombre=insumo.nombre,
+        sucursal=insumo.sucursal
+    ).first()
+
+    # ─────────────────────────────────────
+    # Ajustar el stock real al inventario
+    # ─────────────────────────────────────
+    if producto:
+        producto.stock = insumo.stock_fisico
+        producto.save()
+
+    # ─────────────────────────────────────
+    # Eliminar discrepancia ya corregida
+    # ─────────────────────────────────────
+    insumo.delete()
+
+    messages.success(
+        request,
+        f'✅ Discrepancia de "{producto.nombre if producto else insumo.nombre}" corregida correctamente.'
+    )
+
+    return redirect('Reportes:reporte')
+
+
+
 
 
 

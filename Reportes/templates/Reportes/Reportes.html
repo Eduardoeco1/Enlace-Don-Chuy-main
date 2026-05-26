@@ -320,9 +320,14 @@
                         </td>
                         <td class="px-6 py-5 text-right text-sm font-bold text-on-surface">${{ insumo.costo_diferencia }}</td>
                         <td class="px-8 py-5 text-center rounded-r-[30px]">
-                            <button type="button" class="bg-primary text-on-primary text-[10px] font-black px-4 py-2 rounded-full hover:shadow-lg shadow-primary/20 transition-all opacity-0 group-hover:opacity-100 uppercase tracking-tighter">
-                                Investigar
-                            </button>
+                         <form method="post" action="{% url 'Reportes:resolver_discrepancia' insumo.id %}">
+    {% csrf_token %}
+
+    <button type="submit"
+            class="bg-primary text-on-primary text-[10px] font-black px-4 py-2 rounded-full hover:shadow-lg shadow-primary/20 transition-all uppercase tracking-tighter">
+        Ajustar Stock
+    </button>
+</form>   
                         </td>
                     </tr>
                     {% empty %}
