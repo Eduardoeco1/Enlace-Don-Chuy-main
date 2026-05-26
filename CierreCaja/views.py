@@ -104,27 +104,30 @@ def _calcular_actividades_turno(sucursal=None):
     cortes_hoy = CierreCaja.objects.filter(fecha=ahora.date())
 
     if sucursal:
-        cortes_hoy = cortes_hoy.filter(sucursal=sucursal)
-    
-        for c in cortes_hoy:
-         hora_actividad = ahora
+     cortes_hoy = cortes_hoy.filter(sucursal=sucursal)
 
-        if c.fecha and c.hora_cierre:
-            try:
-                hora_actividad = datetime.combine(c.fecha, c.hora_cierre)
+    for c in cortes_hoy:
 
-                if timezone.is_naive(hora_actividad):
-                    hora_actividad = timezone.make_aware(hora_actividad)
+     hora_actividad = ahora
 
-            except Exception:
-                hora_actividad = ahora
+    if c.fecha and c.hora_cierre:
+        try:
+            hora_actividad = datetime.combine(
+                c.fecha,
+                c.hora_cierre
+            )
 
-        actividades.append({
-            'type': 'retiro',
-            'descripcion': f'Cierre previo: {c.get_turno_display()} — ${c.efectivo_real:,.2f}',
-            'hora': hora_actividad,
-        })
+            if timezone.is_naive(hora_actividad):
+                hora_actividad = timezone.make_aware(hora_actividad)
 
+        except Exception:
+            hora_actividad = ahora
+
+    actividades.append({
+        'type': 'retiro',
+        'descripcion': f'Cierre previo: {c.get_turno_display()} — ${c.efectivo_real:,.2f}',
+        'hora': hora_actividad,
+    })
     def normalizar_fecha(valor):
         if not valor:
             return ahora
