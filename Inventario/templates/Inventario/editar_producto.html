@@ -42,6 +42,26 @@
                 </select>
             </div>
 
+<div class="space-y-2">
+    <label class="block text-sm font-bold text-on-surface">Sucursal *</label>
+
+    <select name="sucursal"
+            class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface"
+            required>
+
+        <option value="">Selecciona una sucursal</option>
+
+        {% for suc in sucursales %}
+        <option value="{{ suc.id }}"
+            {% if producto.sucursal and producto.sucursal.id == suc.id %}selected{% endif %}>
+            {{ suc.nombre }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+
+
             <div class="space-y-2">
                 <label class="block text-sm font-bold text-on-surface">Stock Mínimo</label>
                 <input type="number" name="stock_minimo" value="{{ producto.stock_minimo }}" step="0.01" min="0"

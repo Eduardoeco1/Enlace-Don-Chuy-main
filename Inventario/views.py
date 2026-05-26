@@ -183,19 +183,23 @@ def editar_producto(request, producto_id):
         else:
             producto.categoria = None
 
-        if request.FILES.get('imagen'):
-            producto.imagen = request.FILES.get('imagen')
+        sucursal_id = request.POST.get('sucursal')
+
+    if sucursal_id:
+        producto.sucursal = Sucursal.objects.filter(id=sucursal_id).first()
+    if request.FILES.get('imagen'):
+        producto.imagen = request.FILES.get('imagen')
 
         producto.save()
         messages.success(request, f'✅ Producto "{producto.nombre}" actualizado correctamente.')
         return redirect('Inventario:inventario')
 
     context = {
-        'producto': producto,
-        'categorias': Categoria.objects.all(),
-        'usuario_nombre': request.user.get_full_name() or request.user.username,
-    }
-
+    'producto': producto,
+    'categorias': Categoria.objects.all(),
+    'sucursales': Sucursal.objects.all(),
+    'usuario_nombre': request.user.get_full_name() or request.user.username,
+}
     return render(request, 'Inventario/editar_producto.html', context)
 
 @login_required(login_url='/')
