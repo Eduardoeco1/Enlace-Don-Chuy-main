@@ -157,7 +157,7 @@ DEFAULT_FROM_EMAIL = 'Enlace Don Chuy <noreply@enlacedonchuy.com>'
 
 
 
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+#DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost',
