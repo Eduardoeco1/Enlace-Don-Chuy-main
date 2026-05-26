@@ -91,8 +91,8 @@ WSGI_APPLICATION = 'enlacechuy.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL')
+    'default': dj_database_url.parse(
+        'postgresql://enlaceadmin:6tMpqTPZ36FmiggYSCdHYmo4ZkVAUifn@dpg-d8adhmkm0tmc73a0j65g-a.oregon-postgres.render.com/enlacechuy'
     )
 }
 
