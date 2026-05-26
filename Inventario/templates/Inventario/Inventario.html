@@ -6,12 +6,15 @@
 {% block estilos_extra %}
 <style>
     .material-symbols-outlined {
-        display: inline-block; line-height: 1;
-        text-transform: none; letter-spacing: normal;
-        word-wrap: normal; white-space: nowrap; direction: ltr;
+        display: inline-block;
+        line-height: 1;
+        text-transform: none;
+        letter-spacing: normal;
+        word-wrap: normal;
+        white-space: nowrap;
+        direction: ltr;
     }
-    
-    /* Estilos para la píldora estática del Gerente */
+
     .sucursal-badge {
         background: #FEF3C7;
         color: #92400E;
@@ -31,8 +34,6 @@
 
 <div class="space-y-8">
 
-   
-    {# ── Encabezado con Saludo Dinámico ── #}
     <section class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
             <h2 class="text-3xl font-extrabold text-on-surface font-headline">
@@ -40,20 +41,19 @@
             </h2>
             <p class="text-on-surface-variant mt-1">
                 {% if sucursal_actual %}
-                    📍 {{ sucursal_actual.nombre }} — 
+                    📍 {{ sucursal_actual.nombre }} —
                 {% endif %}
                 Aquí está el estado actual de tus suministros.
             </p>
         </div>
+
         <div class="flex gap-3">
-            {# Botón que abre el modal para nuevo producto #}
             <button onclick="document.getElementById('modalProducto').classList.remove('hidden')"
                 class="px-6 py-2.5 bg-primary text-on-primary rounded-xl font-semibold hover:scale-[1.02] transition-transform flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">add</span>
                 Nuevo Producto
             </button>
-            
-            {# Botón de Exportación Dinámico #}
+
             <a href="{% url 'Inventario:exportar' %}{% if categoria_sel %}?categoria={{ categoria_sel }}{% endif %}"
                class="px-6 py-2.5 bg-surface-container-highest text-on-surface rounded-xl font-semibold hover:scale-[1.02] transition-transform flex items-center gap-2">
                 <span class="material-symbols-outlined text-sm">download</span>
@@ -62,20 +62,19 @@
         </div>
     </section>
 
-    {# ── Métricas dinámicas ── #}
     <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
-
-        {# Eficiencia de stock #}
         <div class="md:col-span-2 p-6 bg-surface-container-lowest rounded-xl flex flex-col justify-between">
             <div>
                 <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Estado General</p>
                 <h3 class="text-2xl font-bold mt-1 font-headline">Eficiencia de Stock</h3>
             </div>
+
             <div class="mt-8 flex items-end justify-between">
                 <div>
                     <span class="text-5xl font-extrabold text-primary font-headline">{{ eficiencia }}%</span>
                     <p class="text-sm text-on-surface-variant font-medium">Nivel óptimo alcanzado</p>
                 </div>
+
                 <div class="w-32 h-16">
                     <div class="flex items-end gap-1 h-full">
                         <div class="w-3 bg-primary-fixed-dim rounded-t-sm" style="height:40%"></div>
@@ -89,7 +88,6 @@
             </div>
         </div>
 
-        {# Productos críticos #}
         <div class="p-6 bg-surface-container-lowest rounded-xl border-l-4 border-error">
             <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Crítico</p>
             <div class="mt-4">
@@ -105,7 +103,6 @@
             </div>
         </div>
 
-        {# Sucursales activas #}
         <div class="p-6 bg-surface-container-lowest rounded-xl">
             <p class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Sucursales</p>
             <div class="mt-4">
@@ -114,6 +111,7 @@
                 </span>
                 <p class="text-sm text-on-surface-variant mt-1">Puntos de control activos</p>
             </div>
+
             <div class="mt-6 flex -space-x-2">
                 {% for suc in sucursales %}
                 <div class="w-8 h-8 rounded-full border-2 border-surface bg-primary-fixed flex items-center justify-center text-[10px] font-bold">
@@ -124,7 +122,6 @@
         </div>
     </section>
 
-    {# ── Filtros dinámicos con Selector Condicional por Rol ── #}
     <section class="flex flex-wrap items-center gap-4 py-2 bg-surface-container-lowest p-4 rounded-xl">
         <div class="flex flex-wrap items-center gap-4 w-full">
             <div class="flex items-center gap-2">
@@ -132,44 +129,38 @@
                 <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Filtrar por:</span>
             </div>
 
-            {# ── CONTROL CONDICIONAL DE ROLES ── #}
             {% if es_duena %}
-                <form method="GET" action="" class="inline-block">
-    {% for key, value in request.GET.items %}
-        {% if key != 'sucursal_id' %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endif %}
-    {% endfor %}
+            <form method="GET" action="" class="inline-block">
+                {% for key, value in request.GET.items %}
+                    {% if key != 'sucursal_id' %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endif %}
+                {% endfor %}
 
-    <select name="sucursal_id" onchange="this.form.submit()" 
-            class="border border-outline bg-transparent rounded-lg text-sm px-3 py-2 text-on-surface focus:ring-primary/50 cursor-pointer font-semibold text-primary">
-        
-        <option value="todas" {% if not request.session.sucursal_id or request.session.sucursal_id == 'todas' %}selected{% endif %}>
-            Todas las sucursales
-        </option>
-        
-        {% for suc in sucursales %}
-            <option value="{{ suc.id }}" 
-                {% if request.session.sucursal_id|slugify == suc.id|slugify %}selected{% endif %}>
-                {{ suc.nombre }}
-            </option>
-        {% endfor %}
-    </select>
-</form>
+                <select name="sucursal_id" onchange="this.form.submit()"
+                        class="border border-outline bg-transparent rounded-lg text-sm px-3 py-2 text-on-surface focus:ring-primary/50 cursor-pointer font-semibold text-primary">
+                    <option value="todas" {% if not request.session.sucursal_id or request.session.sucursal_id == 'todas' %}selected{% endif %}>
+                        Todas las sucursales
+                    </option>
+
+                    {% for suc in sucursales %}
+                    <option value="{{ suc.id }}" {% if request.session.sucursal_id|slugify == suc.id|slugify %}selected{% endif %}>
+                        {{ suc.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
             {% else %}
-                <div class="sucursal-badge">
-                    <span>📍 {{ sucursal_actual.nombre }}</span>
-                </div>
+            <div class="sucursal-badge">
+                <span>📍 {{ sucursal_actual.nombre }}</span>
+            </div>
             {% endif %}
 
-            {# Formulario secundario para los filtros comunes (Categoría y Buscador) #}
             <form method="get" action="{% url 'Inventario:inventario' %}" class="flex flex-wrap items-center gap-4 ml-2">
-                {# Preservamos la sucursal seleccionada si el usuario es dueña #}
                 {% if es_duena and sucursal_sel %}
                     <input type="hidden" name="sucursal" value="{{ sucursal_sel }}">
                 {% endif %}
 
-                {# Filtro categoría #}
                 <select name="categoria"
                     class="bg-surface-container-high border-none rounded-xl text-sm font-semibold px-4 py-2 focus:ring-2 focus:ring-primary"
                     onchange="this.form.submit()">
@@ -181,7 +172,6 @@
                     {% endfor %}
                 </select>
 
-                {# Búsqueda #}
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
                     <input type="text" name="q" value="{{ busqueda }}"
@@ -189,15 +179,13 @@
                         class="pl-9 pr-4 py-2 bg-surface-container-high rounded-xl border-none text-sm focus:ring-2 focus:ring-primary w-48" />
                 </div>
 
-                <a href="{% url 'Inventario:inventario' %}"
-                   class="text-sm font-bold text-primary hover:underline ml-4">
-                     Limpiar Filtros
+                <a href="{% url 'Inventario:inventario' %}" class="text-sm font-bold text-primary hover:underline ml-4">
+                    Limpiar Filtros
                 </a>
             </form>
         </div>
     </section>
 
-    {# ── Tabla de inventario dinámica ── #}
     <section class="bg-surface-container-lowest rounded-2xl p-2">
         <div class="overflow-x-auto">
             <table class="w-full border-separate border-spacing-y-3">
@@ -211,11 +199,10 @@
                         <th class="text-left py-4 px-4 text-xs font-semibold text-on-surface-variant uppercase">Acciones</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     {% for producto in page_obj %}
                     <tr class="bg-surface-container-low hover:bg-surface-container-highest transition-all group">
-
-                        {# Nombre + imagen #}
                         <td class="px-6 py-4 rounded-l-2xl">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-lg overflow-hidden bg-surface-variant flex-shrink-0">
@@ -237,7 +224,6 @@
                             {{ producto.sucursal|default:"—" }}
                         </td>
 
-                        {# Stock con color según estado (CORREGIDO) #}
                         <td class="px-6 py-4 text-right font-bold
                             {% if producto.estado == 'critico' or producto.estado == 'agotado' %}text-error
                             {% elif producto.estado == 'bajo' %}text-tertiary
@@ -247,56 +233,46 @@
 
                         <td class="px-6 py-4 text-on-surface-variant">{{ producto.unidad }}</td>
 
-                        {# Badge de estado dinámico #}
                         <td class="px-6 py-4">
                             {% if producto.estado == 'critico' %}
-                                <span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold flex w-fit items-center gap-1">
-                                    <span class="material-symbols-outlined text-[14px]">warning</span>
-                                    Crítico
-                                </span>
+                            <span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">warning</span>
+                                Crítico
+                            </span>
                             {% elif producto.estado == 'agotado' %}
-                                <span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold flex w-fit items-center gap-1">
-                                    <span class="material-symbols-outlined text-[14px]">remove_circle</span>
-                                    Agotado
-                                </span>
+                            <span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">remove_circle</span>
+                                Agotado
+                            </span>
                             {% elif producto.estado == 'bajo' %}
-                                <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold flex w-fit items-center gap-1">
-                                    <span class="material-symbols-outlined text-[14px]">trending_down</span>
-                                    Bajo
-                                </span>
+                            <span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">trending_down</span>
+                                Bajo
+                            </span>
                             {% else %}
-                                <span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-xs font-bold flex w-fit items-center gap-1">
-                                    <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                                    Óptimo
-                                </span>
+                            <span class="px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-xs font-bold flex w-fit items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                Óptimo
+                            </span>
                             {% endif %}
                         </td>
 
                         <td class="py-4 px-4 rounded-r-2xl">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-3">
                                 <a href="{% url 'Inventario:editar_producto' producto.id %}"
                                    class="px-3 py-2 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary/90 transition-all flex items-center gap-1">
                                     <span class="material-symbols-outlined text-sm">edit</span>
                                     Editar
-                                    {% if request.user.rol == 'duena' or request.user.rol == 'dueña' or request.user.rol == 'gerente' or request.user.is_superuser %}
-<form method="post" action="{% url 'Inventario:eliminar_producto' producto.id %}" style="display:inline;">
-    {% csrf_token %}
-    <button type="submit"
-            onclick="return confirm('¿Seguro que deseas eliminar este producto?');"
-            class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
-        Eliminar
-    </button>
-</form>
-{% endif %}
-                                {% if request.user.empleado.rol == 'duena' or request.user.empleado.rol == 'gerente' or request.user.empleado.rol == 'dueña' %}
-<a href=""javascript:void(0)"
-   onclick="abrirModalEliminar('{% url 'Inventario:eliminar_producto' producto.id %}', '{{ producto.nombre }}')"
-   class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-semibold">
-    Eliminar
-</a>
-
-{% endif %}
                                 </a>
+
+                                {% if request.user.rol == 'duena' or request.user.rol == 'dueña' or request.user.rol == 'gerente' or request.user.is_superuser %}
+                                <button type="button"
+                                        onclick="abrirModalEliminar('{% url 'Inventario:eliminar_producto' producto.id %}', '{{ producto.nombre|escapejs }}')"
+                                        class="px-3 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-all flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                    Eliminar
+                                </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -308,56 +284,17 @@
                         </td>
                     </tr>
                     {% endfor %}
-                    <div id="modalEliminar" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-        <h2 class="text-xl font-bold text-red-700 mb-2">Eliminar producto</h2>
-
-        <p class="text-gray-700 mb-6">
-            ¿Seguro que deseas eliminar <strong id="nombreProductoEliminar"></strong>?
-        </p>
-
-        <div class="flex justify-end gap-3">
-            <button type="button"
-                    onclick="cerrarModalEliminar()"
-                    class="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 font-semibold">
-                Cancelar
-            </button>
-
-            <a id="btnConfirmarEliminar"
-               href="#"
-               class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold">
-                Sí, eliminar
-            </a>
-        </div>
-    </div>
-</div>
-<script>python manage.py runserver
-function abrirModalEliminar(url, nombre) {
-    document.getElementById('btnConfirmarEliminar').href = url;
-    document.getElementById('nombreProductoEliminar').innerText = nombre;
-
-    const modal = document.getElementById('modalEliminar');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function cerrarModalEliminar() {
-    const modal = document.getElementById('modalEliminar');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-</script>
                 </tbody>
             </table>
         </div>
     </section>
 
-    {# ── Paginación dinámica ── #}
     <footer class="flex items-center justify-between py-6">
         <p class="text-sm text-on-surface-variant">
             Mostrando {{ page_obj.start_index }}–{{ page_obj.end_index }}
             de {{ page_obj.paginator.count }} productos
         </p>
+
         <div class="flex items-center gap-2">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}&sucursal={{ sucursal_sel }}&categoria={{ categoria_sel }}&q={{ busqueda }}"
@@ -389,7 +326,6 @@ function cerrarModalEliminar() {
     </footer>
 </div>
 
-{# ── Modal: Nuevo Producto ── #}
 <div id="modalProducto" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
     <div class="bg-surface-container-lowest rounded-2xl p-8 w-full max-w-lg shadow-2xl mx-4">
         <div class="flex items-center justify-between mb-6">
@@ -457,12 +393,67 @@ function cerrarModalEliminar() {
     </div>
 </div>
 
-{# Si hay errores de form, reabre el modal automáticamente #}
+<div id="modalEliminar" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md p-7">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-11 h-11 rounded-full bg-red-100 text-red-700 flex items-center justify-center">
+                <span class="material-symbols-outlined">delete</span>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-on-surface">Eliminar producto</h2>
+                <p class="text-sm text-on-surface-variant">Esta acción no se puede deshacer.</p>
+            </div>
+        </div>
+
+        <p class="text-on-surface-variant mb-6">
+            ¿Seguro que deseas eliminar <strong id="nombreProductoEliminar" class="text-on-surface"></strong>?
+        </p>
+
+        <form id="formEliminar" method="post">
+            {% csrf_token %}
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        onclick="cerrarModalEliminar()"
+                        class="px-5 py-2.5 rounded-xl bg-surface-container-high text-on-surface font-semibold hover:bg-surface-container-highest">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold">
+                    Sí, eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% if form.errors %}
 <script>
     document.getElementById('modalProducto').classList.remove('hidden');
 </script>
 {% endif %}
 
+<script>
+function abrirModalEliminar(url, nombre) {
+    document.getElementById('nombreProductoEliminar').textContent = nombre;
+    document.getElementById('formEliminar').action = url;
+
+    const modal = document.getElementById('modalEliminar');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function cerrarModalEliminar() {
+    const modal = document.getElementById('modalEliminar');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
+
 {% endwith %}
 {% endblock %}
+
+
+
+
+
