@@ -24,16 +24,32 @@ def _get_saludo_cdmx():
         return 'Buenos días'
     elif 12 <= hora < 19:
         return 'Buenas tardes'
-    else:
-        return 'Buenas noches'
+    return 'Buenas noches'
+
+
+def _get_rol_usuario(user):
+    if user.is_superuser:
+        return 'duena'
+
+    rol = getattr(user, 'rol', None)
+
+    if rol:
+        return rol
+
+    try:
+        return user.empleado.rol
+    except Exception:
+        return None
 
 
 def _es_duena(user):
-    return (
-        user.is_superuser or
-        (hasattr(user, 'rol') and user.rol in ['duena', 'dueña']) or
-        user.groups.filter(name='Dueña').exists()
-    )
+    rol = _get_rol_usuario(user)
+    return user.is_superuser or rol in ['duena', 'dueña']
+
+
+def _es_gerente(user):
+    rol = _get_rol_usuario(user)
+    return rol == 'gerente'
 
 
 def _obtener_sucursal_usuario(request):
@@ -41,10 +57,17 @@ def _obtener_sucursal_usuario(request):
     es_duena = _es_duena(request.user)
 
     if not es_duena:
-        if hasattr(request.user, 'empleado') and request.user.empleado.sucursal:
-            sucursal = request.user.empleado.sucursal
-        elif hasattr(request.user, 'sucursal') and request.user.sucursal:
-            sucursal = request.user.sucursal
+        try:
+            if request.user.empleado and request.user.empleado.sucursal:
+                sucursal = request.user.empleado.sucursal
+        except Exception:
+            pass
+
+        try:
+            if not sucursal and request.user.sucursal:
+                sucursal = request.user.sucursal
+        except Exception:
+            pass
 
     return sucursal, es_duena
 
@@ -53,6 +76,12 @@ def _obtener_sucursal_usuario(request):
 @cualquier_rol
 def inventario_view(request):
     sucursal_actual, es_duena = _obtener_sucursal_usuario(request)
+    es_gerente = _es_gerente(request.user)
+
+    try:
+        empleado = request.user.empleado
+    except Exception:
+        empleado = None
 
     categoria_id = request.GET.get('categoria', '')
     busqueda = request.GET.get('q', '')
@@ -87,8 +116,12 @@ def inventario_view(request):
     eficiencia = int((optimos / total_productos * 100)) if total_productos > 0 else 0
 
     sucursales_activas = Sucursal.objects.filter(activa=True)
-    sucursales_disponibles = sucursales_activas if es_duena else (
-        Sucursal.objects.filter(id=sucursal_actual.id) if sucursal_actual else Sucursal.objects.none()
+
+    sucursales_disponibles = (
+        sucursales_activas
+        if es_duena
+        else Sucursal.objects.filter(id=sucursal_actual.id) if sucursal_actual
+        else Sucursal.objects.none()
     )
 
     form = ProductoForm()
@@ -119,18 +152,12 @@ def inventario_view(request):
 
         messages.error(request, '❌ Corrige los errores en el formulario.')
 
-        try:
-            empleado = request.user.empleado
-        except:
-            empleado = None
-
-
     context = {
         'saludo': _get_saludo_cdmx(),
         'page_obj': page_obj,
         'total_productos': total_productos,
         'criticos': criticos,
-        'sucursales_count': sucursales_activas.count(),
+        'sucursales_count': sucursales_disponibles.count(),
         'eficiencia': eficiencia,
         'categorias': Categoria.objects.all(),
         'sucursales': sucursales_disponibles,
@@ -140,9 +167,9 @@ def inventario_view(request):
         'busqueda': busqueda,
         'form': form,
         'es_duena': es_duena,
-        'usuario_nombre': request.user.get_full_name() or request.user.username,
-        'es_duena': request.user.rol == 'duena',
+        'es_gerente': es_gerente,
         'empleado': empleado,
+        'usuario_nombre': request.user.get_full_name() or request.user.username,
     }
 
     return render(request, 'Inventario/Inventario.html', context)
@@ -264,6 +291,7 @@ def editar_producto(request, producto_id):
         ),
         'sucursal_actual': sucursal_actual,
         'es_duena': es_duena,
+        'es_gerente': _es_gerente(request.user),
         'usuario_nombre': request.user.get_full_name() or request.user.username,
     }
 
@@ -301,14 +329,9 @@ def actualizar_precio_rapido(request, producto_id):
 @require_POST
 def eliminar_producto(request, producto_id):
     sucursal_actual, es_duena = _obtener_sucursal_usuario(request)
+    es_gerente = _es_gerente(request.user)
 
     producto = get_object_or_404(Producto, id=producto_id)
-
-    es_gerente = False
-    try:
-        es_gerente = request.user.empleado.rol == 'gerente'
-    except Exception:
-        es_gerente = False
 
     if not (es_duena or es_gerente or request.user.is_superuser):
         messages.error(request, '❌ No tienes permisos para eliminar productos.')
@@ -323,7 +346,4 @@ def eliminar_producto(request, producto_id):
 
     messages.success(request, '✅ Producto eliminado correctamente.')
     return redirect('Inventario:inventario')
-
-
-
 
