@@ -304,11 +304,26 @@ def eliminar_producto(request, producto_id):
 
     producto = get_object_or_404(Producto, id=producto_id)
 
-    if not es_duena and producto.sucursal != sucursal_actual:
-        messages.error(request, '🚫 No tienes permiso para eliminar este producto.')
+    es_gerente = False
+    try:
+        es_gerente = request.user.empleado.rol == 'gerente'
+    except Exception:
+        es_gerente = False
+
+    if not (es_duena or es_gerente or request.user.is_superuser):
+        messages.error(request, '❌ No tienes permisos para eliminar productos.')
         return redirect('Inventario:inventario')
+
+    if not es_duena and not request.user.is_superuser:
+        if not sucursal_actual or producto.sucursal != sucursal_actual:
+            messages.error(request, '🚫 No puedes eliminar productos de otra sucursal.')
+            return redirect('Inventario:inventario')
 
     producto.delete()
 
     messages.success(request, '✅ Producto eliminado correctamente.')
     return redirect('Inventario:inventario')
+
+
+
+
