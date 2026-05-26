@@ -124,10 +124,20 @@ def inventario_view(request):
         else Sucursal.objects.none()
     )
 
-    form = ProductoForm()
+    form = ProductoForm(
+    user=request.user,
+    sucursal_actual=sucursal_actual,
+    es_duena=es_duena
+)
 
     if request.method == 'POST':
-        form = ProductoForm(request.POST, request.FILES)
+        form = ProductoForm(
+    request.POST,
+    request.FILES,
+    user=request.user,
+    sucursal_actual=sucursal_actual,
+    es_duena=es_duena
+)
 
         if form.is_valid():
             nuevo = form.save(commit=False)
