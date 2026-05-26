@@ -30,29 +30,21 @@ def _calcular_ventas_dia(sucursal=None):
 
     ventas_efectivo = Decimal('0.00')
     ventas_tarjeta = Decimal('0.00')
-    
 
-    # ── MÉTODOS DE PAGO ─────────────────────
     metodos_pago = pedidos.values('metodo_pago').annotate(total=Sum('total'))
 
     for metodo in metodos_pago:
-        nombre_metodo = str(
-            metodo['metodo_pago']
-        ).lower().strip() if metodo['metodo_pago'] else ''
-
+        nombre_metodo = str(metodo['metodo_pago']).lower().strip() if metodo['metodo_pago'] else ''
         monto = metodo['total'] or Decimal('0.00')
 
         if nombre_metodo == 'efectivo':
             ventas_efectivo = monto
-
         elif nombre_metodo == 'tarjeta':
             ventas_tarjeta = monto
 
-   
     return {
         'ventas_efectivo': ventas_efectivo,
         'ventas_tarjeta': ventas_tarjeta,
-
         'total_ventas': total_dia,
         'num_pedidos': num_pedidos,
     }
@@ -63,12 +55,7 @@ def _calcular_actividades_turno(sucursal=None):
     from Ventas.models import Pedido
 
     ahora = timezone.now()
-    inicio_hoy = ahora.replace(
-        hour=0,
-        minute=0,
-        second=0,
-        microsecond=0
-    )
+    inicio_hoy = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
 
     actividades = []
 
@@ -77,7 +64,7 @@ def _calcular_actividades_turno(sucursal=None):
     if sucursal:
         entradas = entradas.filter(sucursal=sucursal)
 
-    for e in entradas.order_by('creado_en')[:5]:
+    for e in entradas.order_by('-creado_en')[:5]:
         actividades.append({
             'type': 'entrada',
             'descripcion': f'Entrada de Mercancía: {e.producto} — {e.cantidad} {e.unidad}',
@@ -92,7 +79,7 @@ def _calcular_actividades_turno(sucursal=None):
     if sucursal:
         pedidos = pedidos.filter(sucursal=sucursal)
 
-    total_ventas_dia = pedidos.aggregate(t=Sum('total'))['t'] or Decimal('0')
+    total_ventas_dia = pedidos.aggregate(t=Sum('total'))['t'] or Decimal('0.00')
 
     if total_ventas_dia > 0:
         actividades.append({
@@ -104,30 +91,27 @@ def _calcular_actividades_turno(sucursal=None):
     cortes_hoy = CierreCaja.objects.filter(fecha=ahora.date())
 
     if sucursal:
-     cortes_hoy = cortes_hoy.filter(sucursal=sucursal)
+        cortes_hoy = cortes_hoy.filter(sucursal=sucursal)
 
-    for c in cortes_hoy:
+    for cierre in cortes_hoy:
+        hora_actividad = ahora
 
-     hora_actividad = ahora
+        if cierre.fecha and cierre.hora_cierre:
+            try:
+                hora_actividad = datetime.combine(cierre.fecha, cierre.hora_cierre)
 
-    if c.fecha and c.hora_cierre:
-        try:
-            hora_actividad = datetime.combine(
-                c.fecha,
-                c.hora_cierre
-            )
+                if timezone.is_naive(hora_actividad):
+                    hora_actividad = timezone.make_aware(hora_actividad)
 
-            if timezone.is_naive(hora_actividad):
-                hora_actividad = timezone.make_aware(hora_actividad)
+            except Exception:
+                hora_actividad = ahora
 
-        except Exception:
-            hora_actividad = ahora
+        actividades.append({
+            'type': 'retiro',
+            'descripcion': f'Cierre previo: {cierre.get_turno_display()} — ${cierre.efectivo_real:,.2f}',
+            'hora': hora_actividad,
+        })
 
-    actividades.append({
-        'type': 'retiro',
-        'descripcion': f'Cierre previo: {c.get_turno_display()} — ${c.efectivo_real:,.2f}',
-        'hora': hora_actividad,
-    })
     def normalizar_fecha(valor):
         if not valor:
             return ahora
@@ -140,25 +124,20 @@ def _calcular_actividades_turno(sucursal=None):
         return ahora
 
     actividades.sort(
-        key=lambda x: normalizar_fecha(x.get('hora'))
+        key=lambda x: normalizar_fecha(x.get('hora')),
+        reverse=True
     )
 
     return actividades
 
 
-
-  
 @login_required(login_url='/')
 @gerente_o_superior
 def cierre_caja_view(request):
-
     sucursal = get_sucursal_contexto(request)
-
     ahora = timezone.now()
 
     fondo_inicial = Decimal('200.00')
-
-    # ── FILTRO DE TURNOS ─────────────────────
     turno_seleccionado = request.GET.get('turno', 'todos')
 
     datos_ventas = _calcular_ventas_dia(sucursal)
@@ -168,7 +147,6 @@ def cierre_caja_view(request):
     total_ventas = datos_ventas['total_ventas']
     num_pedidos = datos_ventas['num_pedidos']
 
-   
     actividades = _calcular_actividades_turno(sucursal)
 
     ultimos_cortes = CierreCaja.objects.select_related(
@@ -179,15 +157,11 @@ def cierre_caja_view(request):
     if sucursal:
         ultimos_cortes = ultimos_cortes.filter(sucursal=sucursal)
 
-    # ── FILTRO FUNCIONAL ─────────────────────
     if turno_seleccionado != 'todos':
-        ultimos_cortes = ultimos_cortes.filter(
-            turno=turno_seleccionado
-        )
+        ultimos_cortes = ultimos_cortes.filter(turno=turno_seleccionado)
 
     ultimos_cortes = ultimos_cortes[:3]
 
-    # ── AUTO DETECCIÓN DE TURNO ──────────────
     hora_actual = ahora.hour
 
     if 6 <= hora_actual < 14:
@@ -195,20 +169,15 @@ def cierre_caja_view(request):
     else:
         turno_auto = 'vespertino'
 
-    # ── FORMULARIO ───────────────────────────
     if request.method == 'POST':
 
         if not sucursal:
-            messages.warning(
-                request,
-                '⚠️ Debes seleccionar una sucursal.'
-            )
+            messages.warning(request, '⚠️ Debes seleccionar una sucursal.')
             return redirect('CierreCaja:cierre')
 
         form = CierreCajaForm(request.POST)
 
         if form.is_valid():
-
             cierre = form.save(commit=False)
 
             cierre.usuario = request.user
@@ -222,33 +191,18 @@ def cierre_caja_view(request):
             dif = cierre.diferencia
 
             if dif == 0:
-                messages.success(
-                    request,
-                    '✅ Turno cerrado correctamente.'
-                )
-
+                messages.success(request, '✅ Turno cerrado correctamente.')
             elif dif > 0:
-                messages.success(
-                    request,
-                    f'✅ Sobrante detectado: +${dif:,.2f}'
-                )
-
+                messages.success(request, f'✅ Sobrante detectado: +${dif:,.2f}')
             else:
-                messages.warning(
-                    request,
-                    f'⚠️ Faltante detectado: ${dif:,.2f}'
-                )
+                messages.warning(request, f'⚠️ Faltante detectado: ${dif:,.2f}')
 
             return redirect('CierreCaja:cierre')
 
         else:
-            messages.error(
-                request,
-                '❌ Revisa los campos marcados.'
-            )
+            messages.error(request, '❌ Revisa los campos marcados.')
 
     else:
-
         form = CierreCajaForm(initial={
             'turno': turno_auto,
             'fondo_inicial': fondo_inicial,
@@ -270,8 +224,6 @@ def cierre_caja_view(request):
         'usuario_nombre': request.user.get_full_name() or request.user.username,
     }
 
-    return render(
-        request,
-        'CierreCaja/CierreCaja.html',
-        context
-    )
+    return render(request, 'CierreCaja/CierreCaja.html', context)
+
+
