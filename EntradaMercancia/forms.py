@@ -28,9 +28,20 @@ class EntradaInsumoForm(forms.ModelForm):
                 'step': '0.01',
                 'min': '0'
             }),
-            'unidad': forms.TextInput(attrs={
-                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500',
-            }),
+            'unidad': forms.Select(
+    choices=[
+        ('PZ', 'PZ - Pieza'),
+        ('KG', 'KG - Kilogramos'),
+        ('G', 'G - Gramos'),
+        ('LT', 'LT - Litros'),
+        ('ML', 'ML - Mililitros'),
+        ('PAQ', 'PAQ - Paquete'),
+        ('CJ', 'CJ - Caja'),
+    ],
+    attrs={
+        'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500',
+    }
+),
             'fecha_entrada': forms.DateInput(attrs={
                 'type': 'date',
                 'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500'
