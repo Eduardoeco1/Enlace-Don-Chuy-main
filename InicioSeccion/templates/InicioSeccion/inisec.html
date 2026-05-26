@@ -135,9 +135,24 @@
             </div>
 
             <header class="mb-8">
-                <h2 class="font-display text-headline-md font-bold text-on-surface mb-2">Bienvenido de nuevo</h2>
-                <p class="text-on-surface-variant font-body">Ingrese sus credenciales para acceder al panel de gestión.</p>
-            </header>
+
+    <div class="flex justify-center mb-6">
+        <img
+            src="{% static 'img/logo_don_chuy.jpeg' %}"
+            alt="Rosticería Don Chuy"
+            class="w-44 h-44 object-contain drop-shadow-xl"
+        >
+    </div>
+
+    <h2 class="font-display text-headline-md font-bold text-on-surface mb-2 text-center">
+        Bienvenido de nuevo
+    </h2>
+
+    <p class="text-on-surface-variant font-body text-center">
+        Ingrese sus credenciales para acceder al panel de gestión.
+    </p>
+
+</header>
                   {# DJANGO: Bloque de mensajes de error #}
             {% if login_error %}
     <div class="mb-6 px-4 py-3 rounded-lg bg-red-100 text-red-700 font-body text-sm flex items-center gap-2 border border-red-200">
