@@ -7,10 +7,8 @@
     <title>{% block titulo %}Enlace Don Chuy{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-    
-    {# ── HOJA DE ESTILOS DE GOOGLE FONTS CORREGIDA PARA MATERIAL SYMBOLS OUTLINED ── #}
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0&display=swap" rel="stylesheet" />
-    
+
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -30,6 +28,7 @@
             }, "fontFamily":{"headline":["Manrope"],"body":["Work Sans"],"label":["Work Sans"]} } }
         }
     </script>
+
     <style>
         .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
         body { font-family: 'Work Sans', sans-serif; }
@@ -38,14 +37,21 @@
         .dropdown-menu { transition: opacity 0.15s ease, transform 0.15s ease; }
         .dropdown-menu.hidden { opacity:0; pointer-events:none; transform: translateY(-8px); }
         .dropdown-menu:not(.hidden) { opacity:1; transform: translateY(0); }
+
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #d6d3d1; border-radius: 10px; }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover { background-color: #a8a29e; }
+        .scrollbar-thin { scrollbar-width: thin; scrollbar-color: #d6d3d1 transparent; }
     </style>
+
     {% block estilos_extra %}{% endblock %}
 </head>
 
 <body class="bg-surface text-on-surface min-h-screen flex">
 
-  <aside class="hidden md:flex flex-col h-screen w-64 bg-[#f6f3f2] font-['Manrope'] sticky top-0">
-    
+<aside class="hidden md:flex flex-col h-screen w-64 bg-[#f6f3f2] font-['Manrope'] sticky top-0">
+
     <div class="p-4 border-b border-stone-200">
         <div class="px-2 py-2">
             <h2 class="text-lg font-black text-orange-900 tracking-tighter">Enlace Don Chuy</h2>
@@ -55,7 +61,7 @@
 
     <nav class="flex-1 overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-stone-300 scrollbar-track-transparent hover:scrollbar-thumb-stone-400">
         <div class="flex flex-col gap-1">
-            
+
             <a class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold text-sm
                 {% if seccion_activa == 'tablero' %}bg-white text-orange-900 shadow-sm
                 {% else %}text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7]{% endif %}"
@@ -159,7 +165,7 @@
         <div class="flex items-center gap-3 mb-3 px-2">
             <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {% if request.user.foto_perfil %}
-                <img src="{{ request.user.foto_perfil.url }}?t={% now 'U' %}" 
+                <img src="{{ request.user.foto_perfil.url }}?t={% now 'U' %}"
                      class="w-full h-full object-cover"
                      alt="Foto de perfil"
                      loading="lazy">
@@ -167,26 +173,41 @@
                 <span class="material-symbols-outlined text-orange-600">person</span>
                 {% endif %}
             </div>
+
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-stone-900 truncate">{{ usuario_nombre|default:"Usuario" }}</p>
+                <p class="text-sm font-bold text-stone-900 truncate">
+                    {{ usuario_nombre|default:"Usuario" }}
+                </p>
+
                 <p class="text-xs text-stone-500 truncate">
-                    {% if es_duena %}Dueña
-                    {% elif es_gerente %}Gerente
-                    {% else %}Empleado{% endif %}
-                    {% if sucursal_actual %} • {{ sucursal_actual.nombre }}{% endif %}
+                    {% if request.user.is_superuser %}
+                        Dueña
+                    {% elif request.user.empleado.rol == 'duena' or request.user.empleado.rol == 'dueña' %}
+                        Dueña
+                    {% elif request.user.empleado.rol == 'gerente' %}
+                        Gerente
+                    {% elif request.user.empleado.rol == 'empleado' %}
+                        Empleado
+                    {% else %}
+                        Usuario
+                    {% endif %}
+
+                    {% if sucursal_actual %}
+                        • {{ sucursal_actual.nombre }}
+                    {% endif %}
                 </p>
             </div>
         </div>
-        
-        <a href="{% url 'Perfil:perfil' %}" 
+
+        <a href="{% url 'Perfil:perfil' %}"
            class="flex items-center gap-2 px-4 py-2 text-stone-600 hover:text-orange-800 hover:bg-[#eae7e7] rounded-xl transition-all text-sm font-semibold">
             <span class="material-symbols-outlined text-lg">settings</span>
             <span>Mi Perfil</span>
         </a>
-        
+
         <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
-            <button type="submit" 
+            <button type="submit"
                     class="w-full flex items-center gap-2 px-4 py-2 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all text-sm font-semibold mt-1">
                 <span class="material-symbols-outlined text-lg">logout</span>
                 <span>Cerrar Sesión</span>
@@ -195,201 +216,179 @@
     </div>
 </aside>
 
-<style>
-.scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-}
+<div class="flex-1 flex flex-col min-w-0">
 
-.scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-}
+    <header class="flex justify-between items-center w-full px-8 py-4 bg-[#fcf9f8] font-['Manrope'] font-bold sticky top-0 z-40 border-b border-outline-variant/20">
+        <div>
+            <h1 class="text-xl font-extrabold text-orange-900 tracking-tighter">
+                {% block titulo_pagina %}{% endblock %}
+            </h1>
+        </div>
 
-.scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #d6d3d1;
-    border-radius: 10px;
-}
+        <div class="flex items-center gap-4 relative">
 
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: #a8a29e;
-}
+            <div class="flex items-center gap-3">
+                {% if es_duena %}
+                <form method="GET" action="" class="m-0 flex items-center gap-2">
+                    {% for key, value in request.GET.items %}
+                        {% if key != 'sucursal_id' %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endif %}
+                    {% endfor %}
 
-.scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: #d6d3d1 transparent;
-}
-</style>  
+                    <span class="material-symbols-outlined text-primary text-sm">store</span>
 
-    <div class="flex-1 flex flex-col min-w-0">
+                    <select name="sucursal_id"
+                            class="bg-surface-container-high border-none rounded-xl text-xs font-bold py-1.5 focus:ring-primary/30 text-on-surface cursor-pointer"
+                            onchange="this.form.submit()">
 
-        <header class="flex justify-between items-center w-full px-8 py-4 bg-[#fcf9f8] font-['Manrope'] font-bold sticky top-0 z-40 border-b border-outline-variant/20">
-            <div>
-                <h1 class="text-xl font-extrabold text-orange-900 tracking-tighter">
-                    {% block titulo_pagina %}{% endblock %}
-                </h1>
+                        <option value="todas" {% if not request.session.sucursal_id or request.session.sucursal_id == 'todas' %}selected{% endif %}>
+                            🌎 Todas las Sucursales
+                        </option>
+
+                        {% for suc in sucursales %}
+                        <option value="{{ suc.id }}"
+                            {% if request.session.sucursal_id|slugify == suc.id|slugify %}selected{% endif %}>
+                            📍 {{ suc.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% else %}
+                <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-xl">
+                    <span class="material-symbols-outlined text-primary text-sm">location_on</span>
+                    <span class="text-xs font-bold text-on-surface-variant">
+                        {{ sucursal_actual.nombre|default:"Mi Sucursal" }}
+                    </span>
+                </div>
+                {% endif %}
             </div>
 
-            <div class="flex items-center gap-4 relative">
-                
-                {# ── PASO 5: INTEGRACIÓN DEL SELECTOR GLOBAL DE SUCURSALES ── #}
-             
-<div class="flex items-center gap-3">
-    {% if es_duena %}
-    {# Formulario GET que recarga la página enviando el ID limpio #}
-  <form method="GET" action="" class="m-0 flex items-center gap-2">
-    {% for key, value in request.GET.items %}
-        {% if key != 'sucursal_id' %}
-            <input type="hidden" name="{{ key }}" value="{{ value }}">
-        {% endif %}
-    {% endfor %}
+            <div class="relative">
+                <button id="btnNotificaciones" onclick="toggleDropdown('dropdownNotificaciones')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors relative">
+                    <span class="material-symbols-outlined text-stone-500">notifications</span>
+                    {% if total_notificaciones > 0 %}
+                    <span class="absolute top-1 right-1 w-4 h-4 bg-error text-on-error text-[9px] font-black rounded-full flex items-center justify-center">
+                        {{ total_notificaciones }}
+                    </span>
+                    {% endif %}
+                </button>
 
-    <span class="material-symbols-outlined text-primary text-sm">store</span>
-    <select name="sucursal_id" 
-            class="bg-surface-container-high border-none rounded-xl text-xs font-bold py-1.5 focus:ring-primary/30 text-on-surface cursor-pointer"
-            onchange="this.form.submit()">
-        
-        <option value="todas" {% if not request.session.sucursal_id or request.session.sucursal_id == 'todas' %}selected{% endif %}>
-            🌎 Todas las Sucursales
-        </option>
-        
-        {% for suc in sucursales %}
-            <option value="{{ suc.id }}" 
-                {% if request.session.sucursal_id|slugify == suc.id|slugify %}selected{% endif %}>
-                📍 {{ suc.nombre }}
-            </option>
+                <div id="dropdownNotificaciones" class="dropdown-menu hidden absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-on-surface">Notificaciones</h3>
+                        {% if total_notificaciones > 0 %}
+                        <span class="text-xs bg-error-container text-on-error-container px-2 py-0.5 rounded-full font-bold">
+                            {{ total_notificaciones }} nuevas
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="max-h-72 overflow-y-auto divide-y divide-outline-variant/10">
+                        {% for notif in notificaciones %}
+                        <a href="{{ notif.url|default:'#' }}"
+                           class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors cursor-pointer">
+                            <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-sm {{ notif.color }}">{{ notif.icono }}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-bold text-on-surface truncate">{{ notif.titulo }}</p>
+                                <p class="text-[10px] text-on-surface-variant mt-0.5">{{ notif.detalle }}</p>
+                            </div>
+                            <span class="material-symbols-outlined text-outline text-sm flex-shrink-0 mt-1">chevron_right</span>
+                        </a>
+                        {% empty %}
+                        <div class="px-4 py-8 text-center">
+                            <span class="material-symbols-outlined text-3xl text-outline block mb-2">notifications_none</span>
+                            <p class="text-xs text-on-surface-variant">Sin notificaciones nuevas</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="px-4 py-3 border-t border-outline-variant/20 flex justify-between">
+                        <a href="{% url 'Perfil:perfil' %}" class="text-xs font-bold text-primary hover:underline">
+                            Ver actividad completa
+                        </a>
+                        <span class="text-xs text-on-surface-variant">{{ total_notificaciones }} alertas</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative">
+                <button id="btnPerfil" onclick="toggleDropdown('dropdownPerfil')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
+                    <span class="material-symbols-outlined text-stone-500">account_circle</span>
+                </button>
+
+                <div id="dropdownPerfil" class="dropdown-menu hidden absolute right-0 top-12 w-64 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
+                    <div class="px-4 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-on-primary/20 flex items-center justify-center overflow-hidden shrink-0">
+                                {% if request.user.foto_perfil %}
+                                <img src="{{ request.user.foto_perfil.url }}?t={% now 'U' %}" class="w-full h-full object-cover">
+                                {% else %}
+                                <span class="material-symbols-outlined text-white">person</span>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold">{{ usuario_nombre|default:request.user.username }}</p>
+                                <p class="text-[10px] opacity-80">{{ request.user.email|default:"Sin email" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="py-2">
+                        <a href="{% url 'Perfil:perfil' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container-low transition-colors">
+                            <span class="material-symbols-outlined text-on-surface-variant text-sm">manage_accounts</span>
+                            Ver perfil completo
+                        </a>
+                    </div>
+
+                    <div class="border-t border-outline-variant/20 py-2">
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-error hover:bg-error-container/20 transition-colors text-left">
+                                <span class="material-symbols-outlined text-sm">logout</span>
+                                Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    {% if messages %}
+    <div class="px-8 pt-4 space-y-2">
+        {% block mensajes %}
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-3
+            {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
+            {% elif message.tags == 'warning' %}bg-tertiary-fixed text-on-tertiary-fixed
+            {% else %}bg-error-container text-on-error-container{% endif %}">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">
+                    {% if message.tags == 'success' %}check_circle{% elif message.tags == 'warning' %}warning{% else %}error{% endif %}
+                </span>
+                {{ message }}
+            </div>
+            <button onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
         {% endfor %}
-    </select>
-</form>
-    {% else %}
-    {# Vista de solo lectura para Gerentes/Empleados #}
-    <div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-high rounded-xl">
-        <span class="material-symbols-outlined text-primary text-sm">location_on</span>
-        <span class="text-xs font-bold text-on-surface-variant">
-            {{ sucursal_actual.nombre|default:"Mi Sucursal" }}
-        </span>
+        {% endblock %}
     </div>
     {% endif %}
+
+    <main class="flex-1 p-8">
+        {% block contenido %}{% endblock %}
+    </main>
 </div>
-                <div class="relative">
-                    <button id="btnNotificaciones" onclick="toggleDropdown('dropdownNotificaciones')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors relative">
-                        <span class="material-symbols-outlined text-stone-500">notifications</span>
-                        {% if total_notificaciones > 0 %}
-                        <span class="absolute top-1 right-1 w-4 h-4 bg-error text-on-error text-[9px] font-black rounded-full flex items-center justify-center">{{ total_notificaciones }}</span>
-                        {% endif %}
-                    </button>
 
-                    <div id="dropdownNotificaciones" class="dropdown-menu hidden absolute right-0 top-12 w-80 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
-                        <div class="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between">
-                            <h3 class="font-bold text-sm text-on-surface">Notificaciones</h3>
-                            {% if total_notificaciones > 0 %}
-                            <span class="text-xs bg-error-container text-on-error-container px-2 py-0.5 rounded-full font-bold">
-                                {{ total_notificaciones }} nuevas
-                            </span>
-                            {% endif %}
-                        </div>
-
-                        <div class="max-h-72 overflow-y-auto divide-y divide-outline-variant/10">
-                            {% for notif in notificaciones %}
-                            <a href="{{ notif.url|default:'#' }}"
-                               class="flex items-start gap-3 px-4 py-3 hover:bg-surface-container-low transition-colors cursor-pointer">
-                                <div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <span class="material-symbols-outlined text-sm {{ notif.color }}">{{ notif.icono }}</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-xs font-bold text-on-surface truncate">{{ notif.titulo }}</p>
-                                    <p class="text-[10px] text-on-surface-variant mt-0.5">{{ notif.detalle }}</p>
-                                </div>
-                                <span class="material-symbols-outlined text-outline text-sm flex-shrink-0 mt-1">chevron_right</span>
-                            </a>
-                            {% empty %}
-                            <div class="px-4 py-8 text-center">
-                                <span class="material-symbols-outlined text-3xl text-outline block mb-2">notifications_none</span>
-                                <p class="text-xs text-on-surface-variant">Sin notificaciones nuevas</p>
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="px-4 py-3 border-t border-outline-variant/20 flex justify-between">
-                            <a href="{% url 'Perfil:perfil' %}" class="text-xs font-bold text-primary hover:underline">
-                                Ver actividad completa
-                            </a>
-                            <span class="text-xs text-on-surface-variant">{{ total_notificaciones }} alertas</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="relative">
-                    <button id="btnPerfil" onclick="toggleDropdown('dropdownPerfil')" class="p-2 rounded-full hover:bg-surface-container-high transition-colors">
-                        <span class="material-symbols-outlined text-stone-500">account_circle</span>
-                    </button>
-
-                    <div id="dropdownPerfil" class="dropdown-menu hidden absolute right-0 top-12 w-64 bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/30 z-50 overflow-hidden">
-                        <div class="px-4 py-4 bg-gradient-to-br from-primary to-primary-container text-on-primary">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-on-primary/20 flex items-center justify-center overflow-hidden shrink-0">
-                                    {% if request.user.foto_perfil %}
-                                    <img src="{{ request.user.foto_perfil.url }}?t={% now 'U' %}" class="w-full h-full object-cover">
-                                    {% else %}
-                                    <span class="material-symbols-outlined text-white">person</span>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold">{{ usuario_nombre|default:request.user.username }}</p>
-                                    <p class="text-[10px] opacity-80">{{ request.user.email|default:"Sin email" }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="py-2">
-                            <a href="{% url 'Perfil:perfil' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-on-surface hover:bg-surface-container-low transition-colors">
-                                <span class="material-symbols-outlined text-on-surface-variant text-sm">manage_accounts</span>
-                                Ver perfil completo
-                            </a>
-                        </div>
-                        <div class="border-t border-outline-variant/20 py-2">
-                            <form method="post" action="{% url 'logout' %}">
-                                {% csrf_token %}
-                                <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-error hover:bg-error-container/20 transition-colors text-left">
-                                    <span class="material-symbols-outlined text-sm">logout</span>
-                                    Cerrar Sesión
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        {% if messages %}
-        <div class="px-8 pt-4 space-y-2">
-            {% block mensajes %}
-            {% for message in messages %}
-            <div class="px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-between gap-3
-                {% if message.tags == 'success' %}bg-secondary-container text-on-secondary-container
-                {% elif message.tags == 'warning' %}bg-tertiary-fixed text-on-tertiary-fixed
-                {% else %}bg-error-container text-on-error-container{% endif %}">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-base">
-                        {% if message.tags == 'success' %}check_circle{% elif message.tags == 'warning' %}warning{% else %}error{% endif %}
-                    </span>
-                    {{ message }}
-                </div>
-                <button onclick="this.parentElement.remove()" class="opacity-60 hover:opacity-100"><span class="material-symbols-outlined text-base">close</span></button>
-            </div>
-            {% endfor %}
-            {% endblock %}
-        </div>
-        {% endif %}
-
-        <main class="flex-1 p-8">
-            {% block contenido %}{% endblock %}
-        </main>
-    </div>
-
-    <script>
-      
+<script>
 function toggleDropdown(id) {
-
     const dropdown = document.getElementById(id);
-
     if (!dropdown) return;
 
     const allDropdowns = [
@@ -398,9 +397,7 @@ function toggleDropdown(id) {
     ];
 
     allDropdowns.forEach(function(dropdownId) {
-
         const item = document.getElementById(dropdownId);
-
         if (item && dropdownId !== id) {
             item.classList.add('hidden');
         }
@@ -410,7 +407,6 @@ function toggleDropdown(id) {
 }
 
 document.addEventListener('click', function(event) {
-
     const botones = [
         'btnNotificaciones',
         'btnPerfil'
@@ -422,25 +418,18 @@ document.addEventListener('click', function(event) {
     ];
 
     const clickEnBoton = botones.some(function(id) {
-
         const btn = document.getElementById(id);
-
         return btn && btn.contains(event.target);
     });
 
     const clickEnMenu = menus.some(function(id) {
-
         const menu = document.getElementById(id);
-
         return menu && menu.contains(event.target);
     });
 
     if (!clickEnBoton && !clickEnMenu) {
-
         menus.forEach(function(id) {
-
             const menu = document.getElementById(id);
-
             if (menu) {
                 menu.classList.add('hidden');
             }
@@ -457,82 +446,61 @@ document.addEventListener('click', function(event) {
 </div>
 
 <script>
-    function mostrarMensajeSistema(mensaje, tipo = "error") {
-        const toast = document.getElementById("toastSistema");
-        const texto = document.getElementById("toastTexto");
+function mostrarMensajeSistema(mensaje, tipo = "error") {
+    const toast = document.getElementById("toastSistema");
+    const texto = document.getElementById("toastTexto");
 
-        if (!toast || !texto) return;
+    if (!toast || !texto) return;
 
-        texto.textContent = mensaje;
+    texto.textContent = mensaje;
 
-        toast.className = "fixed top-6 right-6 z-[9999] max-w-md rounded-xl border px-5 py-4 shadow-xl text-sm font-semibold";
+    toast.className = "fixed top-6 right-6 z-[9999] max-w-md rounded-xl border px-5 py-4 shadow-xl text-sm font-semibold";
 
-        if (tipo === "success") {
-            toast.classList.add("bg-green-50", "text-green-700", "border-green-200");
-        } else if (tipo === "warning") {
-            toast.classList.add("bg-yellow-50", "text-yellow-700", "border-yellow-200");
-        } else {
-            toast.classList.add("bg-red-50", "text-red-700", "border-red-200");
-        }
-
-        toast.classList.remove("hidden");
-
-        setTimeout(() => {
-            toast.classList.add("hidden");
-        }, 4500);
+    if (tipo === "success") {
+        toast.classList.add("bg-green-50", "text-green-700", "border-green-200");
+    } else if (tipo === "warning") {
+        toast.classList.add("bg-yellow-50", "text-yellow-700", "border-yellow-200");
+    } else {
+        toast.classList.add("bg-red-50", "text-red-700", "border-red-200");
     }
+
+    toast.classList.remove("hidden");
+
+    setTimeout(() => {
+        toast.classList.add("hidden");
+    }, 4500);
+}
 </script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-
-    // ─────────────────────────────────────────────
-    // VALIDACIÓN GLOBAL PARA INPUTS NUMÉRICOS
-    // ─────────────────────────────────────────────
     document.querySelectorAll('input[type="number"]').forEach(input => {
-
-        input.setAttribute(
-            "min",
-            input.getAttribute("min") || "0"
-        );
+        input.setAttribute("min", input.getAttribute("min") || "0");
 
         input.addEventListener("keydown", function (e) {
-
-            // Bloquear letras y símbolos inválidos
             if (["e", "E", "+", "-"].includes(e.key)) {
                 e.preventDefault();
             }
         });
 
         input.addEventListener("input", function () {
-
-            // Permitir solo números y punto decimal
             this.value = this.value.replace(/[^\d.]/g, "");
 
-            // Evitar múltiples puntos decimales
             const partes = this.value.split(".");
 
             if (partes.length > 2) {
-                this.value =
-                    partes[0] + "." + partes.slice(1).join("");
+                this.value = partes[0] + "." + partes.slice(1).join("");
             }
 
-            // Evitar negativos
             if (parseFloat(this.value) < 0) {
                 this.value = 0;
             }
         });
     });
 
-    // ─────────────────────────────────────────────
-    // BLOQUEAR FECHAS PASADAS
-    // EXCEPTO EN REPORTES
-    // ─────────────────────────────────────────────
     const hoy = new Date().toISOString().split("T")[0];
 
     document.querySelectorAll('input[type="date"]').forEach(input => {
-
-        // Si tiene esta clase, sí puede usar fechas pasadas
         if (input.classList.contains("permitir-fecha-pasada")) {
             return;
         }
@@ -540,13 +508,10 @@ document.addEventListener("DOMContentLoaded", function () {
         input.setAttribute("min", hoy);
 
         input.addEventListener("change", function () {
-
             if (this.value && this.value < hoy) {
-
                 this.value = hoy;
 
                 if (typeof mostrarMensajeSistema === "function") {
-
                     mostrarMensajeSistema(
                         "No puedes seleccionar una fecha anterior a hoy.",
                         "warning"
@@ -556,23 +521,19 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // ─────────────────────────────────────────────
-    // CAMPOS SOLO LETRAS
-    // ─────────────────────────────────────────────
     document.querySelectorAll(".solo-letras").forEach(input => {
-
         input.addEventListener("input", function () {
-
             this.value = this.value.replace(
                 /[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g,
                 ""
             );
         });
     });
-
 });
 </script>
+
 </body>
-
-
 </html>
+
+
+
