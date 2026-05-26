@@ -4,7 +4,7 @@ from .models import Empleado, Asistencia, Justificante
 from Inventario.models import Sucursal
 import re
 
-# Estilos de Enlace Don Chuy
+# Estilos
 INPUT = 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary font-body'
 SELECT = 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary appearance-none font-body'
 INPUT_TIME = 'bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary font-body'
@@ -14,7 +14,6 @@ User = get_user_model()
 
 
 class EmpleadoForm(forms.Form):
-    """Formulario para la creación de nuevos empleados y sus usuarios."""
 
     username = forms.CharField(
         label='Usuario',
@@ -23,7 +22,6 @@ class EmpleadoForm(forms.Form):
             'class': INPUT,
             'placeholder': 'Nombre de usuario',
             'pattern': '[A-Za-z0-9_]+',
-            'title': 'Solo letras, números y guion bajo',
         })
     )
 
@@ -34,8 +32,7 @@ class EmpleadoForm(forms.Form):
             'class': INPUT,
             'placeholder': 'Nombre',
             'pattern': '[A-Za-zÁÉÍÓÚáéíóúÑñ ]+',
-            'title': 'Solo letras y espacios',
-            'oninput': "this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, '')"
+            'oninput': "this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')"
         })
     )
 
@@ -46,13 +43,12 @@ class EmpleadoForm(forms.Form):
             'class': INPUT,
             'placeholder': 'Apellido',
             'pattern': '[A-Za-zÁÉÍÓÚáéíóúÑñ ]+',
-            'title': 'Solo letras y espacios',
-            'oninput': "this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g, '')"
+            'oninput': "this.value=this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ ]/g,'')"
         })
     )
 
     email = forms.EmailField(
-        label='Correo electrónico',
+        label='Correo',
         widget=forms.EmailInput(attrs={
             'class': INPUT,
             'placeholder': 'correo@ejemplo.com'
@@ -69,19 +65,16 @@ class EmpleadoForm(forms.Form):
 
     rol = forms.ChoiceField(
         choices=Empleado.ROLES_CHOICES,
-        label='Rol',
         widget=forms.Select(attrs={'class': SELECT})
     )
 
     sucursal = forms.ModelChoiceField(
-        queryset=Sucursal.objects.all(),
-        label='Sucursal',
+        queryset=Sucursal.objects.none(),
         widget=forms.Select(attrs={'class': SELECT})
     )
 
     estado = forms.ChoiceField(
         choices=Empleado.ESTADO_CHOICES,
-        label='Estado inicial',
         initial='offline',
         widget=forms.Select(attrs={'class': SELECT})
     )
@@ -89,28 +82,46 @@ class EmpleadoForm(forms.Form):
     telefono = forms.CharField(
         required=False,
         max_length=10,
-        label='Teléfono',
         widget=forms.TextInput(attrs={
             'class': INPUT,
             'placeholder': '2221234567',
             'maxlength': '10',
             'inputmode': 'numeric',
             'pattern': '[0-9]{10}',
-            'title': 'Ingresa exactamente 10 números',
-            'oninput': "this.value = this.value.replace(/[^0-9]/g, '').slice(0,10)"
+            'oninput': "this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
         })
     )
 
-    # =========================
-    # VALIDACIONES BACKEND
-    # =========================
+    # ==========================================
+    # CONTROL MULTISUCURSAL
+    # ==========================================
+
+    def __init__(self, *args, **kwargs):
+        sucursal_actual = kwargs.pop('sucursal_actual', None)
+        es_duena = kwargs.pop('es_duena', False)
+
+        super().__init__(*args, **kwargs)
+
+        if es_duena:
+            self.fields['sucursal'].queryset = Sucursal.objects.all()
+        else:
+            if sucursal_actual:
+                self.fields['sucursal'].queryset = Sucursal.objects.filter(
+                    id=sucursal_actual.id
+                )
+
+                self.fields['sucursal'].initial = sucursal_actual
+
+    # ==========================================
+    # VALIDACIONES
+    # ==========================================
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
 
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError(
-                'Este nombre de usuario ya está en uso.'
+                'Este nombre de usuario ya existe.'
             )
 
         return username
@@ -120,7 +131,7 @@ class EmpleadoForm(forms.Form):
 
         if User.objects.filter(email=email).exists():
             raise forms.ValidationError(
-                'Ya existe un usuario registrado con este email.'
+                'Ya existe un usuario con este correo.'
             )
 
         return email
@@ -130,7 +141,7 @@ class EmpleadoForm(forms.Form):
 
         if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$', nombre):
             raise forms.ValidationError(
-                'El nombre solo puede contener letras y espacios.'
+                'El nombre solo puede contener letras.'
             )
 
         return nombre.strip()
@@ -140,7 +151,7 @@ class EmpleadoForm(forms.Form):
 
         if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$', apellido):
             raise forms.ValidationError(
-                'El apellido solo puede contener letras y espacios.'
+                'El apellido solo puede contener letras.'
             )
 
         return apellido.strip()
@@ -165,7 +176,6 @@ class EmpleadoForm(forms.Form):
 
 
 class MarcarEntradaForm(forms.Form):
-    """Formulario rápido para marcar entrada."""
     hora_entrada = forms.TimeField(
         widget=forms.TimeInput(attrs={
             'class': INPUT_TIME,
@@ -176,7 +186,6 @@ class MarcarEntradaForm(forms.Form):
 
 
 class MarcarSalidaForm(forms.Form):
-    """Formulario rápido para marcar salida."""
     hora_salida = forms.TimeField(
         widget=forms.TimeInput(attrs={
             'class': INPUT_TIME,
@@ -187,7 +196,6 @@ class MarcarSalidaForm(forms.Form):
 
 
 class JustificanteForm(forms.ModelForm):
-    """Formulario para añadir notas a una asistencia."""
 
     class Meta:
         model = Asistencia
@@ -197,13 +205,11 @@ class JustificanteForm(forms.ModelForm):
             'notas': forms.Textarea(attrs={
                 'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary resize-none font-body',
                 'rows': 3,
-                'placeholder': 'Motivo de la ausencia o notas adicionales...',
             }),
         }
 
 
 class AsistenciaAdminForm(forms.ModelForm):
-    """Formulario para que el admin registre o edite asistencia."""
 
     class Meta:
         model = Asistencia
@@ -234,14 +240,13 @@ class AsistenciaAdminForm(forms.ModelForm):
             }),
             'estado': forms.Select(attrs={'class': SELECT_CLS_ASIST}),
             'notas': forms.Textarea(attrs={
-                'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary resize-none font-body',
+                'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface resize-none font-body',
                 'rows': 2,
             }),
         }
 
 
 class JustificanteCreateForm(forms.ModelForm):
-    """Formulario para subir justificantes oficiales."""
 
     class Meta:
         model = Justificante
@@ -265,8 +270,7 @@ class JustificanteCreateForm(forms.ModelForm):
 
             'descripcion': forms.Textarea(attrs={
                 'rows': 4,
-                'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface focus:ring-2 focus:ring-primary resize-none font-body',
-                'placeholder': 'Detalla el motivo de tu ausencia...'
+                'class': 'w-full bg-surface-container-high border-none rounded-xl py-3 px-4 text-on-surface resize-none font-body',
             }),
 
             'archivo': forms.FileInput(attrs={
@@ -276,5 +280,6 @@ class JustificanteCreateForm(forms.ModelForm):
 
 
 
+        
 
         
