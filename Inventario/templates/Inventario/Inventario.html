@@ -129,7 +129,7 @@
                 <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Filtrar por:</span>
             </div>
 
-            {% if es_duena %}
+            {% if es_duena or request.user.rol == 'gerente' %}
             <form method="GET" action="" class="inline-block">
                 {% for key, value in request.GET.items %}
                     {% if key != 'sucursal_id' %}
