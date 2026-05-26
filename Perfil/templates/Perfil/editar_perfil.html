@@ -3,69 +3,157 @@
 
 {% block contenido %}
 <div class="max-w-2xl mx-auto space-y-6">
-    <h1 class="text-3xl font-black text-on-surface">Editar Mi Perfil</h1>
 
-  
+    <h1 class="text-3xl font-black text-on-surface">
+        Editar Mi Perfil
+    </h1>
 
-    <form method="post" enctype="multipart/form-data" class="bg-surface-container rounded-2xl p-8 space-y-6">
+    <form method="post"
+          enctype="multipart/form-data"
+          class="bg-surface-container rounded-2xl p-8 space-y-6">
+
         {% csrf_token %}
-        
+
+        <!-- FOTO -->
         <div class="flex items-center gap-6">
             <div class="w-24 h-24 rounded-full bg-orange-100 flex items-center justify-center overflow-hidden shrink-0">
+
                 {% if usuario.foto_perfil %}
-                {# Se agrega ?t={% now "U" %} para obligar al navegador a recargar la imagen rompiendo la caché #}
-                <img src="{{ usuario.foto_perfil.url }}?t={% now 'U' %}" class="w-full h-full object-cover">
+                    <img src="{{ usuario.foto_perfil.url }}?t={% now 'U' %}"
+                         class="w-full h-full object-cover">
                 {% else %}
-                <span class="material-symbols-outlined text-orange-600 text-4xl">person</span>
+                    <span class="material-symbols-outlined text-orange-600 text-4xl">
+                        person
+                    </span>
                 {% endif %}
             </div>
+
             <div class="flex-1">
                 <label class="block text-sm font-bold text-on-surface mb-2">
                     Cambiar Foto de Perfil
                 </label>
-                <input type="file" 
-                       name="foto_perfil" 
+
+                <input type="file"
+                       name="foto_perfil"
                        accept="image/*"
                        class="w-full px-4 py-2 rounded-lg border border-outline bg-surface text-on-surface text-sm focus:outline-none focus:border-primary">
             </div>
         </div>
 
+        <!-- NOMBRE -->
         <div class="space-y-2">
-            <label class="block text-sm font-bold text-on-surface">Nombre</label>
-            <input type="text" 
-                   name="first_name" 
+            <label class="block text-sm font-bold text-on-surface">
+                Nombre
+            </label>
+
+            <input type="text"
+                   name="first_name"
                    value="{{ usuario.first_name }}"
                    class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
         </div>
 
+        <!-- APELLIDO -->
         <div class="space-y-2">
-            <label class="block text-sm font-bold text-on-surface">Apellido</label>
-            <input type="text" 
-                   name="last_name" 
+            <label class="block text-sm font-bold text-on-surface">
+                Apellido
+            </label>
+
+            <input type="text"
+                   name="last_name"
                    value="{{ usuario.last_name }}"
                    class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
         </div>
 
+        <!-- EMAIL -->
         <div class="space-y-2">
-            <label class="block text-sm font-bold text-on-surface">Email</label>
-            <input type="email" 
-                   name="email" 
+            <label class="block text-sm font-bold text-on-surface">
+                Email
+            </label>
+
+            <input type="email"
+                   name="email"
                    value="{{ usuario.email }}"
                    class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
         </div>
 
+        <!-- CAMBIO PASSWORD -->
+        <div id="cambiar-password"
+             class="pt-6 border-t border-outline/30 space-y-5">
+
+            <div>
+                <h2 class="text-2xl font-black text-primary">
+                    Cambiar Contraseña
+                </h2>
+
+                <p class="text-sm text-on-surface-variant mt-1">
+                    Completa estos campos únicamente si deseas cambiar tu contraseña.
+                </p>
+            </div>
+
+            <!-- PASSWORD ACTUAL -->
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-on-surface">
+                    Contraseña Actual
+                </label>
+
+                <input type="password"
+                       name="password_actual"
+                       autocomplete="current-password"
+                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
+            </div>
+
+            <!-- PASSWORD NUEVA -->
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-on-surface">
+                    Nueva Contraseña
+                </label>
+
+                <input type="password"
+                       name="password_nueva"
+                       minlength="8"
+                       autocomplete="new-password"
+                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
+            </div>
+
+            <!-- CONFIRMAR -->
+            <div class="space-y-2">
+                <label class="block text-sm font-bold text-on-surface">
+                    Confirmar Nueva Contraseña
+                </label>
+
+                <input type="password"
+                       name="password_confirmar"
+                       minlength="8"
+                       autocomplete="new-password"
+                       class="w-full px-4 py-3 rounded-lg border border-outline bg-surface text-on-surface focus:outline-none focus:border-primary">
+            </div>
+
+        </div>
+
+        <!-- BOTONES -->
         <div class="flex gap-4 pt-4">
-            <button type="submit" 
+
+            <button type="submit"
                     class="flex-1 bg-primary text-on-primary py-3 rounded-xl font-bold hover:bg-primary/90 transition-colors">
                 Guardar Cambios
             </button>
+
             <a href="{% url 'Perfil:perfil' %}"
                class="px-8 py-3 bg-surface-container-high text-on-surface rounded-xl font-semibold hover:bg-surface-container-highest transition-colors text-center flex items-center justify-center">
                 Cancelar
             </a>
+
         </div>
+
     </form>
+
 </div>
 {% endblock %}
+
+
+
+
+
+
 
 
