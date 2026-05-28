@@ -10,11 +10,7 @@ CATEGORIAS_FIJAS = [
 
 
 class Categoria(models.Model):
-    nombre = models.CharField(
-        max_length=100,
-        unique=True,
-        verbose_name='Categoría'
-    )
+    nombre = models.CharField(max_length=100, unique=True, verbose_name='Categoría')
 
     class Meta:
         verbose_name = 'Categoría'
@@ -40,10 +36,7 @@ class Producto(models.Model):
         ('Docenas', 'Docenas'),
     ]
 
-    nombre = models.CharField(
-        max_length=200,
-        verbose_name='Nombre'
-    )
+    nombre = models.CharField(max_length=200, verbose_name='Nombre')
 
     categoria = models.ForeignKey(
         Categoria,
@@ -98,21 +91,14 @@ class Producto(models.Model):
         verbose_name='Imagen'
     )
 
-    activo = models.BooleanField(
-        default=True,
-        verbose_name='Activo'
-    )
-
-    creado_en = models.DateTimeField(
-        auto_now_add=True
-    )
+    activo = models.BooleanField(default=True, verbose_name='Activo')
+    creado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Producto'
         verbose_name_plural = 'Productos'
         ordering = ['nombre']
 
-    @property
     def estado(self):
         if self.stock <= Decimal('0'):
             return 'agotado'
@@ -129,7 +115,7 @@ class Producto(models.Model):
             'critico': 'Crítico',
             'agotado': 'Agotado',
         }
-        return estados.get(self.estado, 'Óptimo')
+        return estados.get(self.estado(), 'Óptimo')
 
     @property
     def imagen_url(self):
