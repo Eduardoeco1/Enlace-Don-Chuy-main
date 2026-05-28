@@ -28,12 +28,13 @@ class Categoria(models.Model):
 
 class Producto(models.Model):
     UNIDAD_CHOICES = [
-        ('Kg', 'Kilogramos'),
-        ('Lt', 'Litros'),
-        ('Pza', 'Piezas'),
-        ('Potes', 'Potes'),
-        ('Bultos', 'Bultos'),
-        ('Docenas', 'Docenas'),
+        ('PZ', 'PZ - Pieza'),
+        ('KG', 'KG - Kilogramos'),
+        ('G', 'G - Gramos'),
+        ('LT', 'LT - Litros'),
+        ('ML', 'ML - Mililitros'),
+        ('PAQ', 'PAQ - Paquete'),
+        ('CJ', 'CJ - Caja'),
     ]
 
     nombre = models.CharField(max_length=200, verbose_name='Nombre')
@@ -65,7 +66,7 @@ class Producto(models.Model):
     unidad = models.CharField(
         max_length=20,
         choices=UNIDAD_CHOICES,
-        default='Kg',
+        default='PZ',
         verbose_name='Unidad'
     )
 
@@ -135,3 +136,5 @@ class Producto(models.Model):
     def __str__(self):
         sucursal = self.sucursal if self.sucursal else 'Sin Sucursal'
         return f'{self.nombre} — {sucursal}'
+    
+    
