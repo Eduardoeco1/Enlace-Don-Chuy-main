@@ -342,7 +342,25 @@
 
         <form method="post" action="{% url 'Inventario:inventario' %}" enctype="multipart/form-data" class="space-y-5">
             {% csrf_token %}
+{% if form.errors %}
+<div class="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-xl">
+    <strong>Errores:</strong>
 
+    <ul class="mt-2 list-disc list-inside text-sm">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li>
+                    <strong>{{ field.label }}:</strong> {{ error }}
+                </li>
+            {% endfor %}
+        {% endfor %}
+
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
             <div class="space-y-2">
                 <label class="text-sm font-bold text-primary">Nombre del Producto</label>
                 {{ form.nombre }}
